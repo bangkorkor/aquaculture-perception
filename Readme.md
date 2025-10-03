@@ -4,19 +4,11 @@ Specialization Project for Henrik Bang-Olsen +++
 
 ---
 
-## Setup
+## Solaqua
 
-### Dependencies
+This is under the solaqua folder. not important now, for later
 
-**TODO**
-
-### Environment
-
-I recommend setting ut a virtual environment.
-
----
-
-## Datasets
+### Datasets
 
 All data files should be placed in the `./data` folder.
 
@@ -27,7 +19,7 @@ The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.
 
 ---
 
-## Running Code
+### Running Code
 
 1. Place `.bag` files in `data/`
 2. Run notebook:
