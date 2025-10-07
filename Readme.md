@@ -2,7 +2,7 @@
 
 Specialization Project for Henrik Bang-Olsen +++
 
----
+
 
 ## Setup
 
@@ -13,7 +13,7 @@ To deactivate: deactivate
 
 Connect you notebook to a kernel and choose myenv. 
 
----
+
 
 ## Project Structure
 
@@ -36,6 +36,6 @@ Connect you notebook to a kernel and choose myenv.
 ```
 Each model folder is self-contained with its own dataset, utilities, notebook(s), and documentation, making it easier to experiment with and extend different approaches.
 
----
+
 
 
