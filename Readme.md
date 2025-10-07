@@ -6,12 +6,12 @@ Specialization Project for Henrik Bang-Olsen +++
 
 ## Setup
 
-Should create venv. 
-Setup: python3 -m venv myenv
-To activate: source myenv/bin/activate 
-To deactivate: deactivate
-
-Connect you notebook to a kernel and choose myenv. 
+- Should create venv. 
+- Setup: python3 -m venv myenv
+- To activate: source myenv/bin/activate 
+- To deactivate: deactivate
+- Navigate to your model, see Project Structure
+- Connect you notebook to a kernel and choose myenv. 
 
 
 
