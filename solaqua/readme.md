@@ -14,7 +14,7 @@ All data files should be placed in the `./data` folder.
 
 The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.sintef.no/feature/fe-a8f86232-5107-495e-a3dd-a86460eebef6).
 
----
+
 
 ### Running Code
 
@@ -24,4 +24,3 @@ The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.
 
 Output files will be placed in `output/` folder
 
----
