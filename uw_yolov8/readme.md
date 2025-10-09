@@ -59,3 +59,5 @@ In this folder I will replicate the model-architecture proposed in the paper: [A
 - Create a __init__.py file inside models?????
 - To run the actual script do PYTHONPATH=$PWD python3 train.py
 - i think thats it.
+
+### ONNX is cool for visualization, look into this
