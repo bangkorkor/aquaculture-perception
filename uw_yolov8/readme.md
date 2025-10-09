@@ -55,8 +55,7 @@ In this folder I will replicate the model-architecture proposed in the paper: [A
 - Activate the myenv
 - Do pip install requirements.txt
 - Run through the notebook, do all the steps. 
-- Rename RUOD_pic to images. 
-- Update the paths for the ruod.yaml. The "path:" line should be commented out. 
+- Rename RUOD_pic folder to images. ## FIX THIS WITHIN THE NOTEBOOK
 - Create a __init__.py file inside models?????
 - To run the actual script do PYTHONPATH=$PWD python3 train.py
 - i think thats it.
