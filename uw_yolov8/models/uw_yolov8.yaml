@@ -1,0 +1,53 @@
+# UW-YOLOv8 (flattened; C2f everywhere; concat FBiFPN; SPPF@P5)
+nc: 10
+task: detect
+
+## CHATGPT IS HEAVILY USED. **TODO**: LEARN THIS CODE
+
+
+## ---------- BACKBONE (clean /2 steps: 256→128→64→32→16→8) ----------
+backbone:
+  - [-1, 1, Conv,   [64, 3, 2]]     # 0  /2
+  - [-1, 1, C2f,    [64]]           # 1  stage1 ×1 (still /2)
+
+  - [-1, 1, Conv,   [128, 3, 2]]    # 2  /4
+  - [-1, 2, C2f,    [128]]          # 3  stage2 ×2         (still /4)
+
+  - [-1, 1, Conv,   [256, 3, 2]]    # 4  /8
+  - [-1, 8, C2f,    [256]]          # 5  stage3 ×8  -> P3 (/8)
+
+  - [-1, 1, Conv,   [512, 3, 2]]    # 6  /16
+  - [-1, 2, C2f,    [512]]          # 7  stage4 ×2  -> P4 (/16)
+
+  - [-1, 1, Conv,   [512, 3, 2]]    # 8  /32 (keep 512 channels)
+  - [-1, 1, SPPF,   [512, 5]]       # 9  SPPF @ /32 -> P5e (/32)
+
+# ---------- FBiFPN + HEAD (concat; only 80/40/20) ----------
+
+# WE DONT HAVE NECKS IN YOLOV8, SO WE PUT IT ALL IN HEAD
+head:
+  # Lateral 1×1 → 256
+  - [5,  1, Conv,        [256, 1, 1]]          # 10  P3_lateral (/8)
+  - [7,  1, Conv,        [256, 1, 1]]          # 11  P4_lateral (/16)
+  - [9,  1, Conv,        [256, 1, 1]]          # 12  P5_lateral (/32)
+
+  # Top-down
+  - [12, 1, nn.Upsample, [null, 2, nearest]]   # 13  up P5 → /16
+  - [[11, 13], 1, Concat, [1]]                 # 14  fuse (/16)
+  - [-1, 1, C2f,         [256]]                # 15  td-P4 (/16)
+
+  - [15, 1, nn.Upsample, [null, 2, nearest]]   # 16  up P4 → /8
+  - [[10, 16], 1, Concat, [1]]                 # 17  fuse (/8)
+  - [-1, 1, C2f,         [256]]                # 18  td-P3 (/8)   -> P3_out
+
+  # Bottom-up
+  - [18, 1, Conv,        [256, 3, 2]]          # 19  /8→/16
+  - [[15, 19], 1, Concat, [1]]                 # 20  fuse (/16)
+  - [-1, 1, C2f,         [256]]                # 21  P4_out (/16)
+
+  - [21, 1, Conv,        [256, 3, 2]]          # 22  /16→/32
+  - [[12, 22], 1, Concat, [1]]                 # 23  fuse (/32)
+  - [-1, 1, C2f,         [256]]                # 24  P5_out (/32)
+
+  # Detect on (/8, /16, /32)
+  - [[18, 21, 24], 1, Detect, [nc]]
