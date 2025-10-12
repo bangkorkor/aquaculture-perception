@@ -30,19 +30,30 @@ if __name__ == "__main__":
 
     model.train(
         data="data/RUOD/ruod.yaml",
-        epochs=150,        # start smaller; you can resume later
-        imgsz=512,         # ↓ compute ~36% vs 640
-        batch=4,           # try 6 or 8 if it fits
-        device="mps",
-        workers=2,         # keep low on Mac
-        cache=False,
-        rect=False,        # enables shuffle; memory should be OK at batch 4
-        mosaic=0.5,        # lighter aug
-        mixup=0.0,
+        device=0,              # first GPU on the node
+        workers=4,             # set ~= CPU cores you requested
+        epochs=150,
+        imgsz=640,
+        batch=8,               # raise if VRAM allows
+        amp=True,              # mixed precision
+        # --- optimization ---
         optimizer="SGD",
-        lr0=0.01, momentum=0.937, weight_decay=5e-4,
-        amp=True,
-        patience=30
+        lr0=0.01,
+        momentum=0.937,
+        weight_decay=5e-4,
+        patience=50,
+        # --- augmentation (safe with new API) ---
+        mosaic=0.5,
+        mixup=0.0,
+        hsv_h=0.015, hsv_s=0.7, hsv_v=0.4,
+        degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0,
+        # --- dataloader & memory ---
+        cache=True,            # set False if RAM < 32GB or NFS is slow
+        rect=True,             # rectangular batches → a bit less VRAM
+        # --- bookkeeping ---
+        save=True, save_period=10,
+        plots=False,
+        seed=42
     )
 
 
