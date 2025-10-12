@@ -53,11 +53,15 @@ In this folder I will replicate the model-architecture proposed in the paper: [A
 ## Running Code / Viewing Results
 
 - Activate the myenv
-- Do pip install requirements.txt
+- Do pip install -r requirements.txt, there are other dependencies that needs to be installed also, just fix the error messages as you go!
 - Run through the notebook, do all the steps. 
-- Rename RUOD_pic folder to images. ## FIX THIS WITHIN THE NOTEBOOK
+- Rename RUOD_pic folder to images. ## FIX THIS WITHIN THE NOTEBOOK!
 - Create a __init__.py file inside models?????
+- do nvidia-smi to controll what GPU-cores we have. Also spesify what device to run in the model.train(...)
 - To run the actual script do PYTHONPATH=$PWD python3 train.py
 - i think thats it.
 
-### ONNX is cool for visualization, look into this
+- If a model is stopped during training we can do model = YOLO("runs/detect/trainX/weights/last.pt"); model.train(resume=True)
+
+
+- ONNX is cool for visualization, look into this
