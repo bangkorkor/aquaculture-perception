@@ -4,11 +4,11 @@ from ultralytics import YOLO
 if __name__ == "__main__":
     
     # Load custom model cfg
-    model = YOLO("models/uw_yolov8.yaml")
+    model = YOLO("models/uw_yolov8.yaml").load("weights/yolov8s.pt")  # load a pretrained model 
     model.info(verbose=True)
 
     model.train(
-        data="path/to/your_data.yaml",
+        data="data/RUOD/ruod.yaml",
         epochs=300,
         imgsz=640,
         batch=64,
