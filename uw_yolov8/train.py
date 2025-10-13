@@ -18,6 +18,7 @@ if __name__ == "__main__":
         weight_decay=0.0005,
         device=[0, 1, 2, 3],
         workers=4,                  # ~1 worker per GPU (start low)
+        # amp=False,     # <— disable AMP self-check
         project="runs_uwyolo",
         name="fasternet_sgd300_4gpu_safe",
         seed=0,
