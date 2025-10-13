@@ -11,12 +11,16 @@ if __name__ == "__main__":
         data="data/RUOD/ruod.yaml",
         epochs=300,
         imgsz=640,
-        batch=64,
+        batch=64,                    # global batch; DDP splits across GPUs
         optimizer="SGD",
         lr0=0.01,
         momentum=0.937,
         weight_decay=0.0005,
-        device=0,
+        device=[0, 1, 2, 3],
+        workers=4,                  # ~1 worker per GPU (start low)
+        project="runs_uwyolo",
+        name="fasternet_sgd300_4gpu_safe",
+        seed=0,
     )
 
    
