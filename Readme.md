@@ -2,6 +2,12 @@
 
 Specialization Project for Henrik Bang-Olsen +++
 
+**TODO**
+- Make readme for uw_yolov8 folder
+- Make root readme. Add license etc
+- Complete uw_yolov8?
+- Start on sonar model
+
 
 
 ## Setup
