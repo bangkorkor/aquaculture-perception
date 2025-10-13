@@ -9,7 +9,8 @@ __pycache__/
 
 # Data & outputs
 myenv/
-data/
+uw_yolov8/data/
+aqua_yolo/data/
 output/
 
 # Models & large binaries
