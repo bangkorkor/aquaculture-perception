@@ -1,12 +1,30 @@
 # Obstacle Detection and Avoidance for UUVs using Vision and Mutli-Beam sensor data
 
-Specialization Project for Henrik Bang-Olsen +++
+This is the specialization project for Henrik Bang-Olsen. This repo will contain all the code used for the project.
+
+This README will describe the structure of the project and how to get started.
+
 
 **TODO**
-- Make readme for uw_yolov8 folder
 - Make root readme. Add license etc
 - Complete uw_yolov8?
 - Start on sonar model
+
+
+## Project Structure
+This repo contains different models/tools for underwater object detection using vision and sonar data. The different folders are listed below and they contain there own readmes with instructions. 
+
+### 👁️ Vision models:
+- [`uw_yolov8/`](uw_yolov8/README.md) - Yolov8 model with FasterNet backbone.
+
+### 🛜 Sonar models:
+- [`aqua_yolo/`](aqua_yolo/README.md) - Not complete.
+
+### ⚙️ External:
+
+- [`ultralytics/`](ultralytics/README.md) - Modified ultralytics fork (forked on 13.10.2025) for using custom YOLO-models.
+         
+
 
 
 
@@ -18,30 +36,4 @@ Specialization Project for Henrik Bang-Olsen +++
 - To deactivate: deactivate
 - Navigate to your model, see Project Structure
 - Connect you notebook to a kernel and choose myenv. 
-
-
-
-## Project Structure
-
-```bash
-📂 myenv/              # User-created virtual environment (not tracked in git)
-
-📂 model_x/            # Folder for a specific underwater detection model
- ┣ 📂 data/            # Training / testing datasets or dataset links
- ┣ 📂 utils/           # Helper scripts and functions
- ┣ 📓 notebook.ipynb   # Jupyter notebook with experiments / training code
- ┗ 📄 README.md        # Model-specific documentation
-
-📂 model_y/
- ┣ 📂 data/
- ┣ 📂 utils/
- ┣ 📓 notebook.ipynb
- ┗ 📄 README.md
-
-📄 README.md           # Main repository documentation
-```
-Each model folder is self-contained with its own dataset, utilities, notebook(s), and documentation, making it easier to experiment with and extend different approaches.
-
-
-
 
