@@ -18,11 +18,11 @@ This repo contains different models/tools for underwater object detection using 
 - [`uw_yolov8/`](uw_yolov8) - Yolov8 model with FasterNet backbone.
 
 ### 🛜 Sonar models:
-- [`aqua_yolo/`](./aqua_yolo/README.md) - Not complete.
+- [`aqua_yolo/`](aqua_yolo) - Not complete.
 
 ### ⚙️ External:
 
-- [`ultralytics/`](./ultralytics/README.md) - Modified ultralytics fork (forked on 13.10.2025) for using custom YOLO-models.
+- [`ultralytics/`](ultralytics) - Modified ultralytics fork (forked on 13.10.2025) for using custom YOLO-models.
          
 
 
