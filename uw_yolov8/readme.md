@@ -24,10 +24,9 @@ This model tries to replicate the architecture propused in the [paper](https://w
 
 
 ## Data
-
-- RUOD dataset avilable at: [RUOD](https://github.com/xiaoDetection/RUOD?tab=readme-ov-file)
+RUOD dataset avilable at: [RUOD](https://github.com/xiaoDetection/RUOD?tab=readme-ov-file)
 - All the categories are: 
-    - holothurian
+   - holothurian
   - echinus
   - scallop
   - starfish
@@ -37,9 +36,13 @@ This model tries to replicate the architecture propused in the [paper](https://w
   - cuttlefish
   - turtle
   - jellyfish
+ 
+
+### Example of images with BB and label
+<img width="1114" height="440" alt="Screenshot 2025-10-14 at 12 07 48" src="https://github.com/user-attachments/assets/5ac998b1-e6e5-4365-a324-1b1d070f3e1b" />
 
 
-The raw annotated dataset is structured like this:
+### The raw annotated dataset is structured like this:
 ```bash
 {
     "images": [
