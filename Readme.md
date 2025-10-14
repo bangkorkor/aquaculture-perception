@@ -37,3 +37,7 @@ This repo contains different models/tools for underwater object detection using 
 - Navigate to your model, see Project Structure
 - Connect you notebook to a kernel and choose myenv. 
 
+
+## 🧾 License
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
