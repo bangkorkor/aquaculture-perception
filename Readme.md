@@ -15,7 +15,7 @@ This README will describe the structure of the project and how to get started.
 This repo contains different models/tools for underwater object detection using vision and sonar data. The different folders are listed below and they contain there own readmes with instructions. 
 
 ### 👁️ Vision models:
-- [`uw_yolov8/`](./uw_yolov8/README.md) - Yolov8 model with FasterNet backbone.
+- [`uw_yolov8/`](uw_yolov8) - Yolov8 model with FasterNet backbone.
 
 ### 🛜 Sonar models:
 - [`aqua_yolo/`](./aqua_yolo/README.md) - Not complete.
