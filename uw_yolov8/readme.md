@@ -4,7 +4,7 @@ In this folder I have replicated the model-architecture proposed in the paper: [
 
 ## Getting started / View results
 
-To see the results without running the code you can always head to the uw-yolov8.ipynb notebook. The model weights are stored inside [best.pt](./runs_uwyolo/fasternet_sgd300_4gpu_safe/weights/best.pt) and can be downloaded if needed. 
+To see the results without running the code you can always head to the [uw-yolov8.ipynb](./uw-yolov8.ipynb) notebook. The model weights are stored inside [best.pt](./runs_uwyolo/fasternet_sgd300_4gpu_safe/weights/best.pt) and can be downloaded if needed. 
 
 **If you want to run the code yourself**:
 - Clone the repo, you need dependencies like Python, pip, Jupyter etc.
