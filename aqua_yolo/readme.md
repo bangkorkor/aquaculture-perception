@@ -2,6 +2,14 @@
 
 In this folder I have replicated the model-architecture proposed in the paper: [AquaYOLO: Enhancing YOLOv8 for Accurate Underwater Object Detection for Sonar Images](https://www.mdpi.com/2077-1312/13/1/73). 
 
+
+**TODO**:
+- The model now builds but i still dont think it is really accurate. Look into this, use chat and go over the yaml in depth IMPORTANT. 
+- Train the model.
+- Evaluate model and display results like in uw_yolov8. 
+- Put a result section in the readme
+- Update readme and notebook. Make everything look nice.
+
 ## Getting started / View results
 
 To see the results without running the code you can always head to the uw-yolov8.ipynb notebook. The model weights are stored inside [best.pt](./runs_uwyolo/fasternet_sgd300_4gpu_safe/weights/best.pt) and can be downloaded if needed. 

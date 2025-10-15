@@ -6,9 +6,10 @@ This README will describe the structure of the project and how to get started.
 
 
 **TODO**
-- Make root readme. Add license etc
-- Complete uw_yolov8?
 - Start on sonar model
+- Start making branches in git
+- Results section in uw_yolov8's readme
+- Maybe move the datafolder to the root making it global? I dont know if this is really important as we have one sonar model and one vision model. All the data should just stay where it is???
 
 
 ## Project Structure

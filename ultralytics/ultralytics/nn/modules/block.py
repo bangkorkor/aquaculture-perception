@@ -2043,7 +2043,7 @@ class SAVPE(nn.Module):
 # --- Custom FasterNet + LC2f blocks for UW-YOLOv8 ---
 
 # Helper: standard Conv-BN-Act like Ultralytics Conv (kept local to avoid cross-import)
-class ConvBNAct(nn.Module):
+class UWYOLO_ConvBNAct(nn.Module):
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act='SiLU', bias=False):
         super().__init__()
         p = k // 2 if p is None else p
@@ -2082,7 +2082,7 @@ class PConv(nn.Module):
         self.s = s
         self.k = k
         # Only convolve the first cp channels
-        self.conv = ConvBNAct(self.cp, self.cp, k=k, s=s, act='SiLU')
+        self.conv = UWYOLO_ConvBNAct(self.cp, self.cp, k=k, s=s, act='SiLU')
 
     def forward(self, x):
         x1, x2 = torch.split(x, [self.cp, self.uc], dim=1)
@@ -2092,8 +2092,6 @@ class PConv(nn.Module):
             x2 = F.avg_pool2d(x2, kernel_size=self.s, stride=self.s)
         return torch.cat([y1, x2], dim=1)
 
-
-# ultralytics/nn/modules/block.py
 
 class FasterBlock(nn.Module):
     """
@@ -2105,8 +2103,8 @@ class FasterBlock(nn.Module):
         c = c1 if c2 is None else c2
         assert c == c1, "FasterBlock expects c2==c1 (same in/out channels)."
         self.pconv = PConv(c, k=3, s=1, r=r)
-        self.expand = ConvBNAct(c, 2 * c, k=1, s=1, act='GELU')
-        self.project = ConvBNAct(2 * c, c, k=1, s=1, act=None)
+        self.expand = UWYOLO_ConvBNAct(c, 2 * c, k=1, s=1, act='GELU')
+        self.project = UWYOLO_ConvBNAct(2 * c, c, k=1, s=1, act=None)
 
     def forward(self, x):
         y = self.project(self.expand(self.pconv(x)))
@@ -2141,11 +2139,11 @@ class GSConv(nn.Module):
         mid = self.c2 // 2
 
         # SC branch (standard 1x1 conv)
-        self.sc = ConvBNAct(c1, mid, k=1, s=1, act='SiLU')
+        self.sc = UWYOLO_ConvBNAct(c1, mid, k=1, s=1, act='SiLU')
 
         # DSC branch (depthwise kxk on x, then 1x1)
-        self.dw = ConvBNAct(c1, c1, k=k, s=s, g=c1, act='SiLU')   # depthwise on input x
-        self.pw = ConvBNAct(c1, mid, k=1, s=1, act='SiLU')        # pointwise
+        self.dw = UWYOLO_ConvBNAct(c1, c1, k=k, s=s, g=c1, act='SiLU')   # depthwise on input x
+        self.pw = UWYOLO_ConvBNAct(c1, mid, k=1, s=1, act='SiLU')        # pointwise
 
         self.shuffle = ChannelShuffle(groups=2)
 
@@ -2179,8 +2177,8 @@ class LC2f(nn.Module):
         super().__init__()
         c_hidden = c2 // 2
         # stem expand to two branches like C2f
-        self.cv1 = ConvBNAct(c1, c_hidden, k=1, s=1)
-        self.cv2 = ConvBNAct(c1, c_hidden, k=1, s=1)
+        self.cv1 = UWYOLO_ConvBNAct(c1, c_hidden, k=1, s=1)
+        self.cv2 = UWYOLO_ConvBNAct(c1, c_hidden, k=1, s=1)
         # stack FasterBlocks on the second branch
         self.blocks = nn.Sequential(*[FasterBlock(c_hidden, r=r) for _ in range(n)])
         # concatenate [branch1, branch2] -> GSConv to c2
@@ -2192,4 +2190,110 @@ class LC2f(nn.Module):
         y2 = self.blocks(y2)
         y = torch.cat([y1, y2], dim=1)
         return self.fuse(y)
+    
+
+# ---------------------------------------------------------------------------
+# AquaYOLO custom blocks 
+# ---------------------------------------------------------------------------
+# Basic Conv + BN + Activation (used everywhere)
+class AQUAYOLO_ConvBNAct(nn.Module):
+    """
+    Conv2d → BatchNorm2d → Activation (default: ReLU)
+    Works like Ultralytics Conv block but lighter for custom modules.
+    """
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True):
+        super().__init__()
+        if p is None:
+            p = k // 2
+        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = nn.ReLU(inplace=True) if act else nn.Identity()
+
+    def forward(self, x):
+        return self.act(self.bn(self.conv(x)))
+
+# Residual Block (AquaYOLO backbone)
+class AquaResidualBlock(nn.Module):
+    """
+    Two AQUAYOLO_ConvBNAct blocks + skip connection.
+    Paper: AquaYOLO residual backbone (Fig. 1)
+    """
+    def __init__(self, c1, c2, stride=1):
+        super().__init__()
+        self.conv1 = AQUAYOLO_ConvBNAct(c1, c2, k=3, s=stride)
+        self.conv2 = AQUAYOLO_ConvBNAct(c2, c2, k=3, s=1, act=False)
+        self.proj = None
+        if stride != 1 or c1 != c2:
+            self.proj = AQUAYOLO_ConvBNAct(c1, c2, k=1, s=stride, act=False)
+        self.act = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        identity = x if self.proj is None else self.proj(x)
+        out = self.conv2(self.conv1(x))
+        return self.act(out + identity)
+
+
+# Feature Alignment Unit (FAU)
+class FAU(nn.Module):
+    """
+    Aligns Fb to Fa via upsampling and convs. (Fig. 2)
+    """
+    def __init__(self, c_fb, c_out, scale_factor=2):
+        super().__init__()
+        self.scale = scale_factor
+        self.align = AQUAYOLO_ConvBNAct(c_fb, c_out, k=3, s=1)
+
+    def forward(self, Fa, Fb):
+        Fb_up = F.interpolate(Fb, size=Fa.shape[-2:], mode='nearest')
+        Fb_up = self.align(Fb_up)
+        return Fa, Fb_up
+
+
+# Context-Aware Feature Selection (CAFS)
+class CAFS(nn.Module):
+    """
+    Concatenates aligned features, computes softmax weights Wa, Wb,
+    fuses with per-location weighting + gating. (Fig. 3)
+    """
+    def __init__(self, c, mid_ratio=0.5):
+        super().__init__()
+        mid = max(8, int(c * mid_ratio))
+        self.mix = nn.Sequential(
+            AQUAYOLO_ConvBNAct(2 * c, mid, k=3, s=1),
+            AQUAYOLO_ConvBNAct(mid, c, k=1, s=1)
+        )
+        self.weight_head = nn.Conv2d(c, 2, kernel_size=1, bias=True)
+        self.fuse_gate = nn.Sequential(
+            AQUAYOLO_ConvBNAct(c, c, k=3, s=1),
+            nn.Conv2d(c, c, kernel_size=1, bias=True),
+            nn.Sigmoid()
+        )
+
+    def forward(self, Fa, Fb):
+        x = torch.cat([Fa, Fb], dim=1)
+        z = self.mix(x)
+        w = F.softmax(self.weight_head(z), dim=1)
+        Wa, Wb = w[:, 0:1, ...], w[:, 1:2, ...]
+        fused = Wa * Fa + Wb * Fb
+        Wf = self.fuse_gate(fused)
+        return fused * Wf + fused
+
+
+# Dynamic Spatial Attention Module (DSAM)
+class DSAM(nn.Module):
+    """
+    Combines FAU + CAFS to replace YOLO neck concat (Fig. 2).
+    """
+    def __init__(self, ch_in):  # expects [c_a, c_b]
+        super().__init__()
+        assert isinstance(ch_in, (list, tuple)) and len(ch_in) == 2, "DSAM needs [c_a, c_b]"
+        c_a, c_b = ch_in
+        self.fau = FAU(c_fb=c_b, c_out=c_a)
+        self.cafs = CAFS(c=c_a)
+
+    def forward(self, x):
+        Fa, Fb = x
+        Fa, Fb_aligned = self.fau(Fa, Fb)
+        return self.cafs(Fa, Fb_aligned)
+
 

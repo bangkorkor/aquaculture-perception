@@ -1,0 +1,35 @@
+# AquaYOLO (Ultralytics) — numbered layers for clarity
+nc: 1
+scales: {n: [0.33, 0.25, 1024], s: [0.50, 0.50, 1024], m: [0.67, 0.75, 768], l: [1.0, 1.0, 768]}
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]                 # 0  stem, downsample -> P1/2
+  - [-1, 1, AquaResidualBlock, [64]]          # 1  residual stage
+  - [-1, 1, Conv, [128, 3, 2]]                # 2  downsample -> P2/4
+  - [-1, 2, AquaResidualBlock, [128]]         # 3  residual stage x2
+  - [-1, 1, Conv, [256, 3, 2]]                # 4  downsample -> P3/8
+  - [-1, 3, AquaResidualBlock, [256]]         # 5  residual stage x3  (P3)
+  - [-1, 1, Conv, [512, 3, 2]]                # 6  downsample -> P4/16
+  - [-1, 3, AquaResidualBlock, [512]]         # 7  residual stage x3  (P4)
+  - [-1, 1, Conv, [768, 3, 2]]                # 8  downsample -> P5/32
+  - [-1, 2, AquaResidualBlock, [768]]         # 9  residual stage x2  (P5)
+  - [-1, 1, SPPF, [768, 5]]                   # 10 sppf bottleneck
+
+head:
+  # Up path (DSAM fusions)
+  - [[7, 10], 1, DSAM, []]                    # 11 P4' = DSAM(P4, P5)
+  - [-1, 1, C2f, [512, True]]                 # 12 refine P4'
+
+  - [[5, 12], 1, DSAM, []]                    # 13 P3' = DSAM(P3, P4')
+  - [-1, 1, C2f, [256, True]]                 # 14 refine P3'
+
+  # Down path (DSAM instead of concat)
+  - [-1, 1, Conv, [512, 3, 2]]                # 15 downsample P3' -> P4_tmp
+  - [[12, 15], 1, DSAM, []]                   # 16 P4'' = DSAM(P4', P4_tmp)
+  - [-1, 1, C2f, [512, True]]                 # 17 refine P4''
+
+  - [-1, 1, Conv, [768, 3, 2]]                # 18 downsample P4'' -> P5_tmp
+  - [[10, 18], 1, DSAM, []]                   # 19 P5'' = DSAM(P5, P5_tmp)
+  - [-1, 1, C2f, [768, True]]                 # 20 refine P5''
+
+  - [[14, 17, 20], 1, Detect, [nc]]           # 21 Detect on (P3', P4'', P5'')
