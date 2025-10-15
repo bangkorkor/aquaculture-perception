@@ -62,7 +62,11 @@ from .block import (
     PConv,
     FasterBlock,
     GSConv,
-    LC2f
+    LC2f,
+    AquaResidualBlock, 
+    FAU, 
+    CAFS, 
+    DSAM
 )
 from .conv import (
     CBAM,
@@ -187,4 +191,8 @@ __all__ = (
     "GSConv",
     "LC2f",
     "PConv",
+    "AquaResidualBlock", 
+    "FAU", 
+    "CAFS", 
+    "DSAM"
 )

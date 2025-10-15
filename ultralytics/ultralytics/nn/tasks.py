@@ -72,6 +72,10 @@ from ultralytics.nn.modules import (
     GSConv,
     LC2f,
     PConv,
+    AquaResidualBlock, 
+    FAU, 
+    CAFS, 
+    DSAM
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1649,7 +1653,10 @@ def parse_model(d, ch, verbose=True):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
 
+        # ------------------------------
         # -------- MY CODE HERE --------
+        # ------------------------------
+
         if m is FasterBlock:
             # same in/out channels
             c1 = ch[f]
@@ -1679,7 +1686,30 @@ def parse_model(d, ch, verbose=True):
             c2_raw = args[0]
             c2 = make_divisible(min(c2_raw, max_channels) * width, 8) if c2_raw != nc else c2_raw
             args = [c1, c2, *args[1:]]
-        # ------------------------------------MY CODE HERE---------------------------------
+
+        elif m is DSAM:
+            # DSAM takes two sources in `from` and outputs channels of the first (Fa)
+            assert isinstance(f, (list, tuple)) and len(f) == 2, "DSAM expects two sources in 'from'"
+            ch_f = [ch[x] for x in f]      # [c_a, c_b]
+            args = [ch_f] + args           # DSAM(ch_in=[c_a, c_b], *args)
+            c2 = ch_f[0]                   # output channels == channels of Fa
+
+        elif m is AquaResidualBlock:
+            # Build (c1, c2, stride) correctly from YAML
+            # YAML should provide c2 (and optionally stride) — NOT c1
+            c1 = ch[f]
+            assert len(args) >= 1, "AquaResidualBlock requires c2 in YAML, e.g. [64] or [64, 1]"
+            c2_raw = args[0]
+            stride = args[1] if len(args) > 1 else 1
+
+            # width scaling like base modules
+            c2 = make_divisible(min(c2_raw, max_channels) * width, 8) if c2_raw != nc else c2_raw
+
+            args = [c1, c2, stride]
+
+        # ------------------------------
+        # -------- MY CODE DONE --------
+        # ------------------------------
 
         if m in base_modules:
             c1, c2 = ch[f], args[0]
@@ -1737,18 +1767,34 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+        # ------------------------------
+        # -------- MY CODE HERE --------
+        # ------------------------------
+        elif m is DSAM:
+            # Already handled above (args & c2 set). Do NOT index ch[f] here.
+            pass
+        elif m is AquaResidualBlock:
+            # already set args & c2 above
+            pass
+        # ------------------------------
+        # -------- MY CODE DONE --------
+        # ------------------------------
         else:
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         
-        # ---------MY CODE HERE-----------------------------------
+        # ------------------------------
+        # -------- MY CODE HERE --------
+        # ------------------------------
         if m is FasterBlock:
             c2 = ch[f]          # same in/out
         elif m is LC2f:
             # args = [c1, c2, ...] from the wiring above, keep that c2
             c2 = args[1]
-        # --------------------------------------------------------------
+        # ------------------------------
+        # -------- MY CODE DONE --------
+        # ------------------------------
 
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
