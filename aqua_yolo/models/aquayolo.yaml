@@ -1,35 +1,57 @@
 # AquaYOLO (Ultralytics) — numbered layers for clarity
-nc: 1
-scales: {n: [0.33, 0.25, 1024], s: [0.50, 0.50, 1024], m: [0.67, 0.75, 768], l: [1.0, 1.0, 768]}
+nc: 10
+scales: 
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 768]
+  l: [1.0, 1.0, 512]
+  x: [1.0, 1.0, 512]
+
 
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]                 # 0  stem, downsample -> P1/2
-  - [-1, 1, AquaResidualBlock, [64]]          # 1  residual stage
-  - [-1, 1, Conv, [128, 3, 2]]                # 2  downsample -> P2/4
-  - [-1, 2, AquaResidualBlock, [128]]         # 3  residual stage x2
-  - [-1, 1, Conv, [256, 3, 2]]                # 4  downsample -> P3/8
-  - [-1, 3, AquaResidualBlock, [256]]         # 5  residual stage x3  (P3)
-  - [-1, 1, Conv, [512, 3, 2]]                # 6  downsample -> P4/16
-  - [-1, 3, AquaResidualBlock, [512]]         # 7  residual stage x3  (P4)
-  - [-1, 1, Conv, [768, 3, 2]]                # 8  downsample -> P5/32
-  - [-1, 2, AquaResidualBlock, [768]]         # 9  residual stage x2  (P5)
-  - [-1, 1, SPPF, [768, 5]]                   # 10 sppf bottleneck
+  # ----- P1 -----
+  - [-1, 1, AquaResidualBlock, [64, 2]]            # L0: P1/2  | s=2 | 320x320x(64·w)
+
+  # ----- P2 -----
+  - [-1, 1, AquaResidualBlock, [128, 2]]           # L1: P2/4  | s=2 | 160x160x(128·w)
+  - [-1, 3, C2f,              [128, True]]         # L2: C2f (n=3·d) | 160x160x(128·w)
+
+  # ----- P3 -----
+  - [-1, 1, AquaResidualBlock, [256, 2]]           # L3: P3/8  | s=2 | 80x80x(256·w)
+  - [-1, 6, C2f,              [256, True]]         # L4: C2f (n=6·d) | 80x80x(256·w)
+
+  # ----- P4 -----
+  - [-1, 1, AquaResidualBlock, [512, 2]]           # L5: P4/16 | s=2 | 40x40x(512·w)
+  - [-1, 6, C2f,              [512, True]]         # L6: C2f (n=6·d) | 40x40x(512·w)
+
+  # ----- P5 -----
+  - [-1, 1, AquaResidualBlock, [512, 2]]           # L7: P5/32 | s=2 | 20x20x(512·w)
+  - [-1, 3, C2f,              [512, True]]         # L8: C2f (n=3·d) | 20x20x(512·w)
+
+  # ----- Bottleneck -----
+  - [-1, 1, SPPF,             [512, 5]]            # L9: SPPF | 20x20x(512·w)
+
+# taps used by the neck (node indices, not L-numbers):
+#   idx 4 → P3 (after C2f[256])  = 80x80x256
+#   idx 6 → P4 (after C2f[512])  = 40x40x512
+#   idx 9 → P5 (after SPPF)      = 20x20x512
 
 head:
-  # Up path (DSAM fusions)
-  - [[7, 10], 1, DSAM, []]                    # 11 P4' = DSAM(P4, P5)
-  - [-1, 1, C2f, [512, True]]                 # 12 refine P4'
+  # ===== Top-down path (DSAM replaces concat+upsample) =====
+  - [[6, 9], 1, DSAM, []]                           # L10: DSAM(P4, P5) → 40x40x512
+  - [-1,   3, C2f, [512, False]]                 # L11: C2f (shortcut=False, n=3·d) → 40x40x512
 
-  - [[5, 12], 1, DSAM, []]                    # 13 P3' = DSAM(P3, P4')
-  - [-1, 1, C2f, [256, True]]                 # 14 refine P3'
+  - [[4, -1], 1, DSAM, []]                          # L12: DSAM(P3, up(L11)) → 80x80x256
+  - [-1,    3, C2f, [256, False]]                # L13: C2f (shortcut=False, n=3·d) → 80x80x256
 
-  # Down path (DSAM instead of concat)
-  - [-1, 1, Conv, [512, 3, 2]]                # 15 downsample P3' -> P4_tmp
-  - [[12, 15], 1, DSAM, []]                   # 16 P4'' = DSAM(P4', P4_tmp)
-  - [-1, 1, C2f, [512, True]]                 # 17 refine P4''
+  # ===== Bottom-up path (PAN-style; stride-2 convs between DSAMs) =====
+  - [-1,    1, Conv, [256, 3, 2]]                   # L14: downsample 80→40 → 40x40x256
+  - [[11, -1], 1, DSAM, []]                         # L15: DSAM(L11, L14) → 40x40x512
+  - [-1,     3, C2f, [512, False]]               # L16: C2f (shortcut=False, n=3·d) → 40x40x512
 
-  - [-1, 1, Conv, [768, 3, 2]]                # 18 downsample P4'' -> P5_tmp
-  - [[10, 18], 1, DSAM, []]                   # 19 P5'' = DSAM(P5, P5_tmp)
-  - [-1, 1, C2f, [768, True]]                 # 20 refine P5''
+  - [-1,     1, Conv, [512, 3, 2]]                  # L17: downsample 40→20 → 20x20x512
+  - [[9,  -1], 1, DSAM, []]                         # L18: DSAM(P5, L17) → 20x20x512
+  - [-1,     3, C2f, [512, False]]               # L19: C2f (shortcut=False, n=3·d) → 20x20x512
 
-  - [[14, 17, 20], 1, Detect, [nc]]           # 21 Detect on (P3', P4'', P5'')
+  # ===== Detect (decoupled, anchor-free) =====
+  - [[13, 16, 19], 1, Detect, [nc]]                 # L20: Detect on {80x80, 40x40, 20x20}
