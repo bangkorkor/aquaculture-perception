@@ -2240,106 +2240,154 @@ class AquaResidualBlock(nn.Module):
 
 
 
-# Context-Aware Feature Selection (CAFS)
 class CAFS(nn.Module):
-    """
-    Context-Aware Feature Selection (diagram-faithful):
-    - Pre-conv Fa and Fb
-    - Central mix: two Conv+BN+ReLU blocks on [Fa', Fb'] concat -> h
-    - Right branch: from concat -> (1x1, 3x3, 3x3, Conv+BN+ReLU) -> softmax -> Wa, Wb
-    - Left branch: from Fa -> (1x1, Conv+BN+ReLU) -> sigmoid -> Wf
-    - Output: (Wa*Fa + Wb*Fb) + (Wf * h)
-    """
     def __init__(self, c, hidden=None):
         super().__init__()
         h = hidden or c
 
-        # Pre-process each input (yellow boxes on top of Fa and Fb)
+        # pre-convs on Fa and Fb (as you already have)
         self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
         self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
 
-        # Central mixing path: concat -> two convs -> h  (yellow stack in the middle)
-        self.mix1 = AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1)
-        self.mix2 = AQUAYOLO_ConvBNAct(h, c, k=3, s=1)
-
-        # Right branch to produce Wa/Wb from the concatenated features
-        self.wa_path = nn.Sequential(
-            # 1x1 → 3x3 → 3x3 → Conv+BN+ReLU  (purple stack then yellow box)
-            nn.Conv2d(2 * c, c, kernel_size=1, bias=False),
-            nn.BatchNorm2d(c),
-            nn.ReLU(inplace=True),
-            AQUAYOLO_ConvBNAct(c, c, k=3, s=1),
-            AQUAYOLO_ConvBNAct(c, c, k=3, s=1),
-            AQUAYOLO_ConvBNAct(c, c, k=1, s=1),
+        # central mix from concat -> h (C channels)
+        self.mix = nn.Sequential(
+            AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1),
+            AQUAYOLO_ConvBNAct(h,     c, k=3, s=1),
         )
-        self.wa_logits = nn.Conv2d(c, 2, kernel_size=1, bias=True)  # -> [B,2,H,W], then softmax along C
 
-        # Left branch to produce Wf from Fa
-        self.wf_path = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=1, bias=False),   # 1x1
-            nn.BatchNorm2d(c),
-            nn.ReLU(inplace=True),                        # Conv+BN+ReLU
-            nn.Conv2d(c, c, kernel_size=1, bias=True),    # produce C-channel gate
+        # RIGHT path: three plain convs fed from h (C -> C), then CBR to 2ch, softmax
+        self.right_plain = nn.Sequential(
+            nn.Conv2d(c, c, kernel_size=1, bias=False),        
+            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=False),
+        )
+        self.right_cbr = AQUAYOLO_ConvBNAct(c, 2, k=1, s=1)    # produces 2-channel logits
+
+        # LEFT gate: from h
+        self.left = nn.Sequential(
+            nn.Conv2d(c, c, kernel_size=1, bias=False),
+            AQUAYOLO_ConvBNAct(c, c, k=1, s=1),
         )
 
     def forward(self, Fa, Fb):
-        # Pre-convs
         Fa_p = self.pre_a(Fa)
         Fb_p = self.pre_b(Fb)
+        cat  = torch.cat([Fa_p, Fb_p], dim=1)
 
-        # Concat
-        cat = torch.cat([Fa_p, Fb_p], dim=1)
+        h = self.mix(cat)                                     # [B, C, H, W]
 
-        # Central mixed features h (to be gated by Wf)
-        h = self.mix2(self.mix1(cat))                     # [B, C, H, W]
+        ab_feat = self.right_plain(h)                         # now expects C, gets C
+        logits  = self.right_cbr(ab_feat)                     # [B, 2, H, W]
+        Wa, Wb  = torch.softmax(logits, dim=1).chunk(2, dim=1)
 
-        # Right branch: Wa, Wb from concat
-        ab_feat = self.wa_path(cat)                       # [B, C, H, W]
-        logits = self.wa_logits(ab_feat)                  # [B, 2, H, W]
-        Wa, Wb = torch.softmax(logits, dim=1).chunk(2, dim=1)
+        Wf = torch.sigmoid(self.left(h))                      # [B, C, H, W]
 
-        # Left branch: Wf from Fa
-        Wf = torch.sigmoid(self.wf_path(Fa))              # [B, C, H, W]
-
-        # Fuse per the diagram
-        fused = Wa * Fa + Wb * Fb                         # element-wise weighted sum
-        out   = fused + (Wf * h)                          # add gated central mix
+        fused = Wa * Fa + Wb * Fb
+        out   = fused + (Wf * h)
         return out
 
 
 
 class FAU(nn.Module):
+    """
+    FAU (Feature Alignment Unit):
+      - Resize Fb to Fa's H×W using bilinear
+      - 3×3 Conv + BN + ReLU
+    """
     def __init__(self, c_in, c_out):
         super().__init__()
-        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, 3, 1)
+        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, k=3, s=1)
+
     def forward(self, x, target_hw):
         x = F.interpolate(x, size=target_hw, mode='bilinear', align_corners=False)
         return self.conv(x)
 
-
+    
 class DSAM(nn.Module):
-    def __init__(self, ch_in, ch_b=None, use_skip=True):
-        super().__init__()
-        # Accept (c_a, c_b) or a list/tuple [c_a, c_b]
-        if isinstance(ch_in, (list, tuple)):
-            c_a, c_b = ch_in
-        else:
-            c_a, c_b = ch_in, ch_b if ch_b is not None else ch_in
+    """
+    DSAM (Fig. 2-style) with clear naming.
 
-        self.fau_b = FAU(c_in=c_b, c_out=c_a)          # up/down + conv
-        self.pre_a = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
-        self.pre_b = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
-        self.cafs  = CAFS(c=c_a)
-        self.post  = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
-        self.use_skip = use_skip
-        self.skip1x1  = AQUAYOLO_ConvBNAct(c_a, c_a, 1, 1) if use_skip else nn.Identity()
+    Inputs
+      Fa : [B, C_a, H, W]  (target scale)
+      Fb : [B, C_b, h, w]  (adjacent scale)
+
+    Wiring
+      Left (from Fa):
+        Fa --FAU--> L_a
+        Fa --FAU--> L_b
+        left_mul = L_a ⊗ L_b                       # element-wise multiply
+
+      Right CAFS branch:
+        Fa: CBR -> FAU(align/refresh) -> CBR       # stays at (H,W), ends at C_a
+        Fb: CBR -> FAU(align to Fa) -> CBR         # becomes (H,W), C_a
+        cafs_out = CAFS(Fa_path, Fb_path) -> CBR   # post CBR per fig
+
+      Merge & final:
+        added = left_mul ⊕ cafs_out                # element-wise add
+        out   = 1×1 Conv (+BN+ReLU)                # your requested final layer
+    """
+    def __init__(self, ch_in, ch_b=None):
+        super().__init__()
+        # Accept C_a alone or (C_a, C_b)
+        if isinstance(ch_in, (list, tuple)):
+            C_a, C_b = ch_in
+        else:
+            C_a, C_b = ch_in, (ch_b if ch_b is not None else ch_in)
+
+        # ---------- Left path (two FAUs on Fa, then multiply) ----------
+        self.left_fau_A = FAU(c_in=C_a, c_out=C_a)
+        self.left_fau_B = FAU(c_in=C_a, c_out=C_a)
+
+        # ---------- Right path → CAFS ----------
+        # Fa sub-path into CAFS: CBR -> FAU -> CBR (kept even if size already matches, to mirror fig)
+        self.fa_pre_cbr   = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+        self.fa_align_fau = FAU(c_in=C_a, c_out=C_a)
+        self.fa_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+
+        # Fb sub-path into CAFS: CBR -> FAU(align to Fa) -> CBR
+        self.fb_pre_cbr   = AQUAYOLO_ConvBNAct(C_b, C_b, k=3, s=1)
+        self.fb_align_fau = FAU(c_in=C_b, c_out=C_a)          # also changes channels to C_a
+        self.fb_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+
+        # CAFS core (your fixed, figure-faithful version)
+        self.cafs = CAFS(c=C_a)
+
+        # post-CAFS CBR (yellow box under CAFS)
+        self.cafs_out_cbr = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+
+        # final 1×1 conv
+        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=False)
 
     def forward(self, inputs):
         Fa, Fb = inputs
-        Fb = self.fau_b(Fb, target_hw=Fa.shape[-2:])
-        Fa = self.pre_a(Fa); Fb = self.pre_b(Fb)
-        out = self.post(self.cafs(Fa, Fb))
-        return out + (self.skip1x1(Fa) if self.use_skip else 0)
+        H, W = Fa.shape[-2:]
+
+        # ----- Left path -----
+        L_a = self.left_fau_A(Fa, target_hw=(H, W))      # [B, C_a, H, W]
+        L_b = self.left_fau_B(Fa, target_hw=(H, W))      # [B, C_a, H, W]
+        left_mul = L_a * L_b                              # element-wise multiply
+
+        # ----- Right path (Fa branch) -----
+        fa1 = self.fa_pre_cbr(Fa)                         # [B, C_a, H, W]
+        fa2 = self.fa_align_fau(fa1, target_hw=(H, W))    # [B, C_a, H, W]
+        fa3 = self.fa_post_cbr(fa2)                       # [B, C_a, H, W]
+
+        # ----- Right path (Fb branch) -----
+        fb1 = self.fb_pre_cbr(Fb)                         # [B, C_b, h, w]
+        fb2 = self.fb_align_fau(fb1, target_hw=(H, W))    # [B, C_a, H, W]
+        fb3 = self.fb_post_cbr(fb2)                       # [B, C_a, H, W]
+
+        # ----- CAFS + post CBR -----
+        cafs_out = self.cafs(fa3, fb3)                    # [B, C_a, H, W]
+        cafs_out = self.cafs_out_cbr(cafs_out)            # [B, C_a, H, W]
+
+        # ----- Add left & right, then final 1×1 -----
+        added = left_mul + cafs_out                       # element-wise add
+        out = self.final_conv(added)                      # 1×1 conv only
+        return out
+
+
+
 
 
 
