@@ -53,10 +53,16 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "UWYOLO_ConvBNAct",
     "PConv",
     "FasterBlock",
     "GSConv",
     "LC2f",
+    "AQUAYOLO_ConvBNAct",
+    "AquaResidualBlock",
+    "FAU",
+    "CAFS",
+    "DSAM",
 
 )
 
@@ -2233,67 +2239,107 @@ class AquaResidualBlock(nn.Module):
         return self.act(out + identity)
 
 
-# Feature Alignment Unit (FAU)
-class FAU(nn.Module):
-    """
-    Aligns Fb to Fa via upsampling and convs. (Fig. 2)
-    """
-    def __init__(self, c_fb, c_out, scale_factor=2):
-        super().__init__()
-        self.scale = scale_factor
-        self.align = AQUAYOLO_ConvBNAct(c_fb, c_out, k=3, s=1)
-
-    def forward(self, Fa, Fb):
-        Fb_up = F.interpolate(Fb, size=Fa.shape[-2:], mode='nearest')
-        Fb_up = self.align(Fb_up)
-        return Fa, Fb_up
-
 
 # Context-Aware Feature Selection (CAFS)
 class CAFS(nn.Module):
     """
-    Concatenates aligned features, computes softmax weights Wa, Wb,
-    fuses with per-location weighting + gating. (Fig. 3)
+    Context-Aware Feature Selection (diagram-faithful):
+    - Pre-conv Fa and Fb
+    - Central mix: two Conv+BN+ReLU blocks on [Fa', Fb'] concat -> h
+    - Right branch: from concat -> (1x1, 3x3, 3x3, Conv+BN+ReLU) -> softmax -> Wa, Wb
+    - Left branch: from Fa -> (1x1, Conv+BN+ReLU) -> sigmoid -> Wf
+    - Output: (Wa*Fa + Wb*Fb) + (Wf * h)
     """
-    def __init__(self, c, mid_ratio=0.5):
+    def __init__(self, c, hidden=None):
         super().__init__()
-        mid = max(8, int(c * mid_ratio))
-        self.mix = nn.Sequential(
-            AQUAYOLO_ConvBNAct(2 * c, mid, k=3, s=1),
-            AQUAYOLO_ConvBNAct(mid, c, k=1, s=1)
-        )
-        self.weight_head = nn.Conv2d(c, 2, kernel_size=1, bias=True)
-        self.fuse_gate = nn.Sequential(
+        h = hidden or c
+
+        # Pre-process each input (yellow boxes on top of Fa and Fb)
+        self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+        self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+
+        # Central mixing path: concat -> two convs -> h  (yellow stack in the middle)
+        self.mix1 = AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1)
+        self.mix2 = AQUAYOLO_ConvBNAct(h, c, k=3, s=1)
+
+        # Right branch to produce Wa/Wb from the concatenated features
+        self.wa_path = nn.Sequential(
+            # 1x1 → 3x3 → 3x3 → Conv+BN+ReLU  (purple stack then yellow box)
+            nn.Conv2d(2 * c, c, kernel_size=1, bias=False),
+            nn.BatchNorm2d(c),
+            nn.ReLU(inplace=True),
             AQUAYOLO_ConvBNAct(c, c, k=3, s=1),
-            nn.Conv2d(c, c, kernel_size=1, bias=True),
-            nn.Sigmoid()
+            AQUAYOLO_ConvBNAct(c, c, k=3, s=1),
+            AQUAYOLO_ConvBNAct(c, c, k=1, s=1),
+        )
+        self.wa_logits = nn.Conv2d(c, 2, kernel_size=1, bias=True)  # -> [B,2,H,W], then softmax along C
+
+        # Left branch to produce Wf from Fa
+        self.wf_path = nn.Sequential(
+            nn.Conv2d(c, c, kernel_size=1, bias=False),   # 1x1
+            nn.BatchNorm2d(c),
+            nn.ReLU(inplace=True),                        # Conv+BN+ReLU
+            nn.Conv2d(c, c, kernel_size=1, bias=True),    # produce C-channel gate
         )
 
     def forward(self, Fa, Fb):
-        x = torch.cat([Fa, Fb], dim=1)
-        z = self.mix(x)
-        w = F.softmax(self.weight_head(z), dim=1)
-        Wa, Wb = w[:, 0:1, ...], w[:, 1:2, ...]
-        fused = Wa * Fa + Wb * Fb
-        Wf = self.fuse_gate(fused)
-        return fused * Wf + fused
+        # Pre-convs
+        Fa_p = self.pre_a(Fa)
+        Fb_p = self.pre_b(Fb)
+
+        # Concat
+        cat = torch.cat([Fa_p, Fb_p], dim=1)
+
+        # Central mixed features h (to be gated by Wf)
+        h = self.mix2(self.mix1(cat))                     # [B, C, H, W]
+
+        # Right branch: Wa, Wb from concat
+        ab_feat = self.wa_path(cat)                       # [B, C, H, W]
+        logits = self.wa_logits(ab_feat)                  # [B, 2, H, W]
+        Wa, Wb = torch.softmax(logits, dim=1).chunk(2, dim=1)
+
+        # Left branch: Wf from Fa
+        Wf = torch.sigmoid(self.wf_path(Fa))              # [B, C, H, W]
+
+        # Fuse per the diagram
+        fused = Wa * Fa + Wb * Fb                         # element-wise weighted sum
+        out   = fused + (Wf * h)                          # add gated central mix
+        return out
 
 
-# Dynamic Spatial Attention Module (DSAM)
-class DSAM(nn.Module):
-    """
-    Combines FAU + CAFS to replace YOLO neck concat (Fig. 2).
-    """
-    def __init__(self, ch_in):  # expects [c_a, c_b]
+
+class FAU(nn.Module):
+    def __init__(self, c_in, c_out):
         super().__init__()
-        assert isinstance(ch_in, (list, tuple)) and len(ch_in) == 2, "DSAM needs [c_a, c_b]"
-        c_a, c_b = ch_in
-        self.fau = FAU(c_fb=c_b, c_out=c_a)
-        self.cafs = CAFS(c=c_a)
+        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, 3, 1)
+    def forward(self, x, target_hw):
+        x = F.interpolate(x, size=target_hw, mode='bilinear', align_corners=False)
+        return self.conv(x)
 
-    def forward(self, x):
-        Fa, Fb = x
-        Fa, Fb_aligned = self.fau(Fa, Fb)
-        return self.cafs(Fa, Fb_aligned)
+
+class DSAM(nn.Module):
+    def __init__(self, ch_in, ch_b=None, use_skip=True):
+        super().__init__()
+        # Accept (c_a, c_b) or a list/tuple [c_a, c_b]
+        if isinstance(ch_in, (list, tuple)):
+            c_a, c_b = ch_in
+        else:
+            c_a, c_b = ch_in, ch_b if ch_b is not None else ch_in
+
+        self.fau_b = FAU(c_in=c_b, c_out=c_a)          # up/down + conv
+        self.pre_a = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
+        self.pre_b = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
+        self.cafs  = CAFS(c=c_a)
+        self.post  = AQUAYOLO_ConvBNAct(c_a, c_a, 3, 1)
+        self.use_skip = use_skip
+        self.skip1x1  = AQUAYOLO_ConvBNAct(c_a, c_a, 1, 1) if use_skip else nn.Identity()
+
+    def forward(self, inputs):
+        Fa, Fb = inputs
+        Fb = self.fau_b(Fb, target_hw=Fa.shape[-2:])
+        Fa = self.pre_a(Fa); Fb = self.pre_b(Fb)
+        out = self.post(self.cafs(Fa, Fb))
+        return out + (self.skip1x1(Fa) if self.use_skip else 0)
+
 
 
