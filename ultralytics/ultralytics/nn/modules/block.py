@@ -2222,7 +2222,7 @@ class AQUAYOLO_ConvBNAct(nn.Module):
 class AquaResidualBlock(nn.Module):
     """
     Two AQUAYOLO_ConvBNAct blocks + skip connection.
-    Paper: AquaYOLO residual backbone (Fig. 1)
+    Paper: AquaYOLO residual backbone (Fig. 1)  The paper does not explicitly mention BN but we use it. 
     """
     def __init__(self, c1, c2, stride=1):
         super().__init__()
@@ -2257,15 +2257,15 @@ class CAFS(nn.Module):
 
         # RIGHT path: three plain convs fed from h (C -> C), then CBR to 2ch, softmax
         self.right_plain = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=1, bias=False),        
-            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=False),
-            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(c, c, kernel_size=1, bias=True),        
+            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=True),
+            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=True),
         )
         self.right_cbr = AQUAYOLO_ConvBNAct(c, 2, k=1, s=1)    # produces 2-channel logits
 
         # LEFT gate: from h
         self.left = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=1, bias=False),
+            nn.Conv2d(c, c, kernel_size=1, bias=True),
             AQUAYOLO_ConvBNAct(c, c, k=1, s=1),
         )
 
@@ -2312,9 +2312,9 @@ class DSAM(nn.Module):
       Fb : [B, C_b, h, w]  (adjacent scale)
 
     Wiring
-      Left (from Fa):
+      Left:
         Fa --FAU--> L_a
-        Fa --FAU--> L_b
+        Fb --FAU--> L_b (the output must match C_a dimentions so that we can do ultiplication)
         left_mul = L_a ⊗ L_b                       # element-wise multiply
 
       Right CAFS branch:
@@ -2334,9 +2334,9 @@ class DSAM(nn.Module):
         else:
             C_a, C_b = ch_in, (ch_b if ch_b is not None else ch_in)
 
-        # ---------- Left path (two FAUs on Fa, then multiply) ----------
+        # ---------- Left path ( FAU on Fa and Fb, then multiply them) ----------
         self.left_fau_A = FAU(c_in=C_a, c_out=C_a)
-        self.left_fau_B = FAU(c_in=C_a, c_out=C_a)
+        self.left_fau_B = FAU(c_in=C_b, c_out=C_a)
 
         # ---------- Right path → CAFS ----------
         # Fa sub-path into CAFS: CBR -> FAU -> CBR (kept even if size already matches, to mirror fig)
@@ -2356,7 +2356,7 @@ class DSAM(nn.Module):
         self.cafs_out_cbr = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
 
         # final 1×1 conv
-        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=False)
+        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=True)     # why ues bias???
 
     def forward(self, inputs):
         Fa, Fb = inputs
@@ -2364,8 +2364,8 @@ class DSAM(nn.Module):
 
         # ----- Left path -----
         L_a = self.left_fau_A(Fa, target_hw=(H, W))      # [B, C_a, H, W]
-        L_b = self.left_fau_B(Fa, target_hw=(H, W))      # [B, C_a, H, W]
-        left_mul = L_a * L_b                              # element-wise multiply
+        L_b = self.left_fau_B(Fb, target_hw=(H, W))      # [B, C_a, H, W]
+        left_mul = L_a * L_b                             # element-wise multiply
 
         # ----- Right path (Fa branch) -----
         fa1 = self.fa_pre_cbr(Fa)                         # [B, C_a, H, W]
@@ -2379,10 +2379,10 @@ class DSAM(nn.Module):
 
         # ----- CAFS + post CBR -----
         cafs_out = self.cafs(fa3, fb3)                    # [B, C_a, H, W]
-        cafs_out = self.cafs_out_cbr(cafs_out)            # [B, C_a, H, W]
+        cafs_cbr_out = self.cafs_out_cbr(cafs_out)        # [B, C_a, H, W]
 
         # ----- Add left & right, then final 1×1 -----
-        added = left_mul + cafs_out                       # element-wise add
+        added = left_mul + cafs_cbr_out                   # element-wise add
         out = self.final_conv(added)                      # 1×1 conv only
         return out
 
