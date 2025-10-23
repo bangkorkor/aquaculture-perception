@@ -2210,8 +2210,8 @@ class AQUAYOLO_ConvBNAct(nn.Module):
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True):
         super().__init__()
         if p is None:
-            p = k // 2
-        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=False)
+            p = k // 2 # This will give padding = 1
+        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=False) # Bias is off because of the following BN
         self.bn = nn.BatchNorm2d(c2)
         self.act = nn.ReLU(inplace=True) if act else nn.Identity()
 
@@ -2219,24 +2219,60 @@ class AQUAYOLO_ConvBNAct(nn.Module):
         return self.act(self.bn(self.conv(x)))
 
 # Residual Block (AquaYOLO backbone)
+# class AquaResidualBlock(nn.Module):
+#     """
+#     Two AQUAYOLO_ConvBNAct blocks + skip connection.
+#     Paper: AquaYOLO residual backbone (Fig. 1)  The paper does not explicitly mention BN but we use it. 
+#     """
+#     def __init__(self, c1, c2, stride=1):
+#         super().__init__()
+#         self.conv1 = AQUAYOLO_ConvBNAct(c1, c2, k=3, s=stride)
+#         self.conv2 = AQUAYOLO_ConvBNAct(c2, c2, k=3, s=1, act=False)
+#         self.proj = None
+#         if stride != 1 or c1 != c2:
+#             self.proj = AQUAYOLO_ConvBNAct(c1, c2, k=1, s=stride, act=False)
+#         self.act = nn.ReLU(inplace=True)
+
+#     def forward(self, x):
+#         identity = x if self.proj is None else self.proj(x)
+#         out = self.conv2(self.conv1(x))
+#         return self.act(out + identity)
+
 class AquaResidualBlock(nn.Module):
     """
-    Two AQUAYOLO_ConvBNAct blocks + skip connection.
-    Paper: AquaYOLO residual backbone (Fig. 1)  The paper does not explicitly mention BN but we use it. 
+    Residual block as in the paper: [37] in paper goes in detail.
+      - Two 3×3 Conv2d layers (stride=1, padding=1), no BN inside the block
+      - Add skip (identity) to the stacked conv output
+      - Apply ReLU AFTER the addition
+
+    Notes from the paper:
+      - The residual block contains two convolutional layers.
+      - Each conv layer uses 3×3 kernels; ReLU is applied after the skip-add.
+      - BatchNorm is used in the *separate conv layer that follows the block*,
+        not inside the block itself. :contentReference[oaicite:0]{index=0}
     """
-    def __init__(self, c1, c2, stride=1):
+    def __init__(self, c1: int, c2: int, s: int = 1, k: int = 3, p: int = None, bias: bool = True): # Paper does not specify bias, but because it is not followed directly by BN we use it
         super().__init__()
-        self.conv1 = AQUAYOLO_ConvBNAct(c1, c2, k=3, s=stride)
-        self.conv2 = AQUAYOLO_ConvBNAct(c2, c2, k=3, s=1, act=False)
+        if p is None:
+            # 'same' padding for odd k (k=3 → p=1)
+            p = k // 2
+
+        # main path
+        self.conv1 = nn.Conv2d(c1, c2, kernel_size=k, stride=s, padding=p, bias=bias) # only here we set the stride ok
+        self.conv2 = nn.Conv2d(c2, c2, kernel_size=k, stride=1, padding=p, bias=bias)       
+
+        # projection for shape change, this makes it so that the block gets stride=s
         self.proj = None
-        if stride != 1 or c1 != c2:
-            self.proj = AQUAYOLO_ConvBNAct(c1, c2, k=1, s=stride, act=False)
+        if s != 1 or c1 != c2:
+            self.proj = nn.Conv2d(c1, c2, kernel_size=1, stride=s, padding=0, bias=bias)
+
         self.act = nn.ReLU(inplace=True)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x if self.proj is None else self.proj(x)
         out = self.conv2(self.conv1(x))
-        return self.act(out + identity)
+        out = out + identity
+        return self.act(out)
 
 
 
@@ -2251,7 +2287,7 @@ class CAFS(nn.Module):
 
         # central mix from concat -> h (C channels)
         self.mix = nn.Sequential(
-            AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1),
+            AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1),     # 2*c because of concat
             AQUAYOLO_ConvBNAct(h,     c, k=3, s=1),
         )
 
@@ -2356,7 +2392,7 @@ class DSAM(nn.Module):
         self.cafs_out_cbr = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
 
         # final 1×1 conv
-        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=True)     # why ues bias???
+        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=True)     # No Bn after so we use bias
 
     def forward(self, inputs):
         Fa, Fb = inputs
