@@ -4,11 +4,9 @@ In this folder I have replicated the model-architecture proposed in the paper: [
 
 
 **TODO**:
-- The model now builds but i still dont think it is really accurate. Look into this, use chat and go over the yaml in depth IMPORTANT. 
-- Train the model.
-- Evaluate model and display results like in uw_yolov8. 
-- Put a result section in the readme
-- Update readme and notebook. Make everything look nice.
+- M performes better than L for the fullmatch architecture? This is because of modifications i made on the model. I should try different kernel sizes (e.g in DSAM) and compare the results. 
+- We should run the evaluaton code for the different models
+- Update readme here. Add results section and look over everything.
 
 ## Getting started / View results
 
