@@ -2207,7 +2207,7 @@ class AQUAYOLO_ConvBNAct(nn.Module):
     Conv2d → BatchNorm2d → Activation (default: ReLU)
     Works like Ultralytics Conv block but lighter for custom modules.
     """
-    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):    # We try kernel size 1x1 to limit parameters, paper does not specify
         super().__init__()
         if p is None:
             p = k // 2 # This will give padding = 1
@@ -2282,13 +2282,13 @@ class CAFS(nn.Module):
         h = hidden or c
 
         # pre-convs on Fa and Fb (as you already have)
-        self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
-        self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+        self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=1, s=1)
+        self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=1, s=1)
 
         # central mix from concat -> h (C channels)
         self.mix = nn.Sequential(
-            AQUAYOLO_ConvBNAct(2 * c, h, k=3, s=1),     # 2*c because of concat
-            AQUAYOLO_ConvBNAct(h,     c, k=3, s=1),
+            AQUAYOLO_ConvBNAct(2 * c, h, k=1, s=1),     # 2*c because of concat
+            AQUAYOLO_ConvBNAct(h,     c, k=1, s=1),
         )
 
         # RIGHT path: three plain convs fed from h (C -> C), then CBR to 2ch, softmax
@@ -2332,7 +2332,7 @@ class FAU(nn.Module):
     """
     def __init__(self, c_in, c_out):
         super().__init__()
-        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, k=3, s=1)
+        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, k=1, s=1)   # does not specify kernel size, we try k=1
 
     def forward(self, x, target_hw):
         x = F.interpolate(x, size=target_hw, mode='bilinear', align_corners=False)
@@ -2376,14 +2376,14 @@ class DSAM(nn.Module):
 
         # ---------- Right path → CAFS ----------
         # Fa sub-path into CAFS: CBR -> FAU -> CBR (kept even if size already matches, to mirror fig)
-        self.fa_pre_cbr   = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+        self.fa_pre_cbr   = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
         self.fa_align_fau = FAU(c_in=C_a, c_out=C_a)
-        self.fa_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+        self.fa_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
 
         # Fb sub-path into CAFS: CBR -> FAU(align to Fa) -> CBR
-        self.fb_pre_cbr   = AQUAYOLO_ConvBNAct(C_b, C_b, k=3, s=1)
+        self.fb_pre_cbr   = AQUAYOLO_ConvBNAct(C_b, C_b, k=1, s=1)
         self.fb_align_fau = FAU(c_in=C_b, c_out=C_a)          # also changes channels to C_a
-        self.fb_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+        self.fb_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
 
         # CAFS core (your fixed, figure-faithful version)
         self.cafs = CAFS(c=C_a)

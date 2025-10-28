@@ -61,7 +61,7 @@ if __name__ == "__main__":
         workers=8,                 # A100s handle this fine
         device=[0, 1, 2, 3],
         project="runs_aquayolo",
-        name="aquayolo_m_SGD_640_4gpu_fullmatch",
+        name="aquayolo_L_SGD_640_4gpu_fullmatch",
         seed=0,
         amp=False,  # this makes it slower but stable? Uses a lot of memory?
     )
