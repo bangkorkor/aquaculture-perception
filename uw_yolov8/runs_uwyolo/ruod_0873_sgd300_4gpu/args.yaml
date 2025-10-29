@@ -13,7 +13,7 @@ cache: false
 device: 0,1,2,3
 workers: 4
 project: runs_uwyolo
-name: fasternet_sgd300_4gpu_safe
+name: fasternet_sgd300_4gpu_safe_new
 exist_ok: false
 pretrained: weights/yolov8s.pt
 optimizer: SGD
@@ -103,4 +103,4 @@ auto_augment: randaugment
 erasing: 0.4
 cfg: null
 tracker: botsort.yaml
-save_dir: /cluster/home/henrban/SOLAQUA-UOD/uw_yolov8/runs_uwyolo/fasternet_sgd300_4gpu_safe
+save_dir: /cluster/home/henrban/SOLAQUA-UOD/uw_yolov8/runs_uwyolo/fasternet_sgd300_4gpu_safe_new

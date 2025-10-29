@@ -20,7 +20,7 @@ if __name__ == "__main__":
         workers=4,                  # ~1 worker per GPU (start low)
         # amp=False,     # <— disable AMP self-check
         project="runs_uwyolo",
-        name="fasternet_sgd300_4gpu_safe",
+        name="ruod_0873_sgd300_4gpu",
         seed=0,
     )
 
