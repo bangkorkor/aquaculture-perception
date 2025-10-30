@@ -6,11 +6,11 @@ This README will describe the structure of the project and how to get started.
 
 
 **TODO**
-- Start on sonar model
-- Start making branches in git
-- Results section in uw_yolov8's readme
-- Maybe move the datafolder to the root making it global? I dont know if this is really important as we have one sonar model and one vision model. All the data should just stay where it is???
-
+- Fix folder struture and naming conventions. 
+    - We shall make a new folder called notebooks (this is now utils): in these notebooks we mainly process the datasets and show the predictions. 
+    - We should match the model's (the notebook and the run) name based on what data it is trained on. All the models within this root is obviuosly following the uw_yolo architecture. 
+    - One model should be tested on different datasets. All this should be done in the notebook. I shall write about the resuluts in my notion-paper, keeping everything clear. 
+- Write about this new folder structure in readme.md
 
 ## Project Structure
 This repo contains different models/tools for underwater object detection using vision and sonar data. The different folders are listed below and they contain there own readmes with instructions. 
