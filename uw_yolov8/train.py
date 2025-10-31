@@ -8,19 +8,22 @@ if __name__ == "__main__":
     model.info(verbose=True)
 
     model.train(
-        data="data/RUOD/ruod.yaml",
-        epochs=300,
+        data="data/FishDataset/fishdataset.yaml",
+        epochs=150,
+        patience=30,                         # early stopping
         imgsz=640,
         batch=64,                    # global batch; DDP splits across GPUs
-        optimizer="SGD",
-        lr0=0.01,
-        momentum=0.937,
-        weight_decay=0.0005,
-        device=[0, 1, 2, 3],
+        cache="disk", 
+        optimizer="adamw",         # smoother convergence than SGD
+        lr0=0.003,                 # initial learning rate
+        weight_decay=0.0005,       # standard regularization
+        momentum=0.937,            # used if optimizer=SGD
+        cos_lr=True,   
+        device=[0, 1],
         workers=4,                  # ~1 worker per GPU (start low)
         # amp=False,     # <— disable AMP self-check
         project="runs_uwyolo",
-        name="ruod_0873_sgd300_4gpu",
+        name="fishdata_adamw150_2gpu",
         seed=0,
     )
 
