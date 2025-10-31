@@ -2,9 +2,25 @@
 
 In this folder I have replicated the model-architecture proposed in the paper: [A lightweight YOLOv8 integrating FasterNet for real-time underwater object detection](https://www.researchgate.net/publication/378873018_A_lightweight_YOLOv8_integrating_FasterNet_for_real-time_underwater_object_detection). 
 
+## Folder structure
+
+- [`notebooks/`](notebooks) - Notebooks containing code for processing and training the model. The name of the notebook is what dataset the model is trained on. 
+
+- [`runs_uwyolo/`](runs_uwyolo) - Evaluation of models on other datasets. Sub folders NOT starting with EVAl contain weights of the trained model. 
+
+- [`data/`](data) - Here we add and use the data we are working with. 
+
+- [`models/`](models) - Here we find the config file for making the uw_yolo architecture.  
+
+- [`train.py/`](train.py) - Script for training models. This file is to be changed. 
+
+
+
 ## Getting started / View results
 
-To see the results without running the code you can always head to the [uw-yolov8.ipynb](./uw-yolov8.ipynb) notebook. The model weights are stored inside [best.pt](./runs_uwyolo/fasternet_sgd300_4gpu_safe/weights/best.pt) and can be downloaded if needed. 
+To see the results without running the code you can head to the [notebooks-folder](notebooks) and scroll through one of them. The notebooks should contain descriptions of the process and how to see predictions. 
+
+# NOT complete:
 
 **If you want to run the code yourself**:
 - Clone the repo, you need dependencies like Python, pip, Jupyter etc.
@@ -15,6 +31,7 @@ To see the results without running the code you can always head to the [uw-yolov
 - Navigate back to the uw_yolov8 folder and do `pip install -r requirements.txt`, if there are other dependencies that needs to be installed, just fix the error messages as you go!
 - Navigate to the [uw-yolov8.ipynb](./uw-yolov8.ipynb) notebook and select a kernel, choose the myenv you have created.
 - This should be it for the setup. You should now follow the notebook for the rest of the runthrough. 
+
 
 
 ## Architecture
