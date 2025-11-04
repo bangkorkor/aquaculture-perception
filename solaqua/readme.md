@@ -1,5 +1,7 @@
 # Solaqua
 
+notebook is moved to uw_yolo/notebooks
+
 Not important now, for later.
 
 dataset_extraction.ipynb has code for extracting and vizualizing the solaqua dataset. 
