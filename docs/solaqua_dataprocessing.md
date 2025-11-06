@@ -6,14 +6,29 @@
 Show the flow here.
 
 ## Table of Contents
-1. [Extracting Data](#1-extracting-data)
-2. [Plotting Polar Data](#2-plotting-polar-data)
-3. [Sonar Enhancer](#3-sonar-enhancer)
-4. [Polar to Cartesian](#4-polar-to-cartesian)
+1. [What we want to achieve](#1-what-we-want-to-achieve)
+2. [Extracting Data](#1-extracting-data)
+3. [Plotting Polar Data](#2-plotting-polar-data)
+4. [Sonar Enhancer](#3-sonar-enhancer)
+5. [Polar to Cartesian](#4-polar-to-cartesian)
 
-## 1 Extracting Data
+## 1 What we want to achieve
 
-### 1.1 Bag Files
+Goal is to process sonar data to information we want to do something with. 
+
+### 1.1 CFC style replication
+
+I am first trying to process the data into .png images that look like the ones from the cfc dataset. This way I can test my cfc trained model and see if it can recognice any fish.
+
+![alt text](images/myImage.png "Title")
+
+### 1.2 Later scope
+
+I porbably want to process the data into my own styled .pngs to make it simple to label the net. Then i can use the labeled net-data to train my own model and see if it is able to recognize any net. 
+
+## 2 Extracting Data
+
+### 2.1 Bag Files
 
 **Explain the timestamp stuff and what is in the bags**
 
@@ -24,7 +39,7 @@ The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.
 
 
 
-### 1.2 Load the data
+### 2.2 Load the data
 
 - First we set the `_video.bag` path as `VIDEO_BAG` and we select the frame we want to save as `VIDEO_FRAME`. These are feed to the `load_sonoptix_frame_from_bag` function.
 
@@ -38,7 +53,7 @@ M_raw, t_ns = load_sonoptix_frame_from_bag(VIDEO_BAG, VIDEO_FRAME) # returns M_r
 
   
 
-### 1.3 Convert to raw data on right format
+### 2.3 Convert to raw data on right format
 
 **inside load_sonoptix_frame_from_bag function:**
 
@@ -93,10 +108,10 @@ return data.reshape(1024, 256)
 
 **TODO:** we can also get the time in utc
 
-## 2 Plotting Polar Data
+## 3 Plotting Polar Data
 
   
-### 2.1 Plotting the raw data
+### 3.1 Plotting the raw data
 - plot_raw_frame and plot_enhanced_frame takes as input M_raw, VIDEO_FRAME, SONAR_IMAGES_CONFIG: config that we have defined in a code-block higher up. **TODO:** would also be nice to take in the timestamp for later, when I want to export .pngs.
 
   
@@ -161,24 +176,24 @@ ax.set_ylim(cfg["range_min_m"], cfg["display_range_max_m"])
   
   
 
-## 3 Sonar Enhancer:
+## 4 Sonar Enhancer:
 
 - We have two enhancers. the default enhance_intensity, and the one designed to look cfc images: enhance_cfc_style
-### 3.1 Enhance intensity
+### 4.1 Enhance intensity
  
 - enhance_intensity: uses TVG, scaling and percentile normalization.
 
   
-### 3.1 Enhance CFC style 
+### 4.1 Enhance CFC style 
 
 This is to try to match the look of the cfc_dataset.
 - enhance_cfc_style: uses: sanitize, TVG: geometric spreading + absorption, Per-range background flattening, Log/dB, contrast stretch to [0,1], Gamma: lift highlights a bit, noise, hard white cap.
 
 
 
-## 4 Polar to Cartesian
+## 5 Polar to Cartesian
 
-### 4.1 Cone Plot
+### 5.1 Cone Plot
 
 What i want: I want a cone view where:
 
@@ -239,7 +254,7 @@ im = ax.imshow(
   
   
   
-### 4.2 Rasterization
+### 5.2 Rasterization
 **cone_rasterizer_display_cell**:
 **chat is used a lot here and i dont get this stuff fully yet**
 
