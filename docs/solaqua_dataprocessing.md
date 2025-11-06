@@ -20,7 +20,12 @@ Goal is to process sonar data to information we want to do something with.
 
 I am first trying to process the data into .png images that look like the ones from the cfc dataset. This way I can test my cfc trained model and see if it can recognice any fish.
 
-![alt text](images/myImage.png "Title")
+<div align="center">
+<img src="https://github.com/user-attachments/assets/3934a250-ac09-4802-b28b-0e17beacb26f" width="400" />
+<img src="https://github.com/user-attachments/assets/0897df09-db8b-4563-a21f-eefff00b2cf4" width="400" />
+<p><em>Figure: My processed sonar frame (left) vs. CFC-style frame (right).</em></p>
+</div>
+
 
 ### 1.2 Later scope
 
