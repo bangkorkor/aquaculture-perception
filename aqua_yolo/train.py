@@ -9,21 +9,22 @@ if __name__ == "__main__":
     m.info()  # non-zero FLOPs confirms forward path OK
 
     m.train(
-        data="data/UATD/uatd.yaml",
+        data="data/CFC_gray/cfc_gray.yaml",
         pretrained=False,          # Safest off
-        epochs=300, 
+        epochs=60, 
         imgsz=640,
-        batch=64,
+        batch=512,
+        nbs=512,
+
 
     # optimizer
-        optimizer="SGD",           # <- paper-style; avoids "auto" ambiguity
-        lr0=0.012,
-        momentum=0.937,
-        weight_decay=6e-4,
+        optimizer="AdamW",
+        lr0=3e-4,
+        weight_decay=0.01,
         cos_lr=True,
-        lrf=0.01,                  # final LR ratio for cosine
-        warmup_epochs=10,
-        patience=50,               
+        lrf=0.01,
+        warmup_epochs=3,
+        patience=20,            
 
 
     # loss balance – tilt a bit toward recall
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     # sonar-friendly aug, we do nothing really, is this ok?
         auto_augment=None,  
         # geometry
-        degrees=0.2,          # no rotation (shadow direction is meaningful)
+        degrees=0.0,          # no rotation (shadow direction is meaningful)
         shear=0.0,
         perspective=0.0,
         translate=0.02,       # small shifts are ok
@@ -58,10 +59,13 @@ if __name__ == "__main__":
 
         
     # system
-        workers=8,                 # A100s handle this fine
+        workers=8,                 # safe
         device=[0, 1, 2, 3],
         project="runs_aquayolo",
-        name="aquayolo_L_SGD_640_4gpu_fullmatch",
+        name="cfc_gray_adamW_m",
         seed=0,
-        amp=False,  # this makes it slower but stable? Uses a lot of memory?
+        plots=False,
+        cache=False,
+        amp=False,  
     )
+
