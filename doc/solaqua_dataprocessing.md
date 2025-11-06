@@ -15,7 +15,14 @@ Show the flow here.
 
 ### 1.1 Bag Files
 
-Explain the timestamp stuff and what is in the bags
+**Explain the timestamp stuff and what is in the bags**
+
+- `*_data.bag` → contains **sensor data** (ROS bag format).
+- `*_video.bag` → contains **video images** (ROS bag format).
+
+The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.sintef.no/feature/fe-a8f86232-5107-495e-a3dd-a86460eebef6).
+
+
 
 ### 1.2 Load the data
 
