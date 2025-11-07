@@ -630,6 +630,14 @@ def build_vfr_mp4_from_ns_frames(
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, check=True)
     print(f"✅ Wrote {out_mp4}")
+
+    # cleanup
+    try:
+        list_txt.unlink()
+        print(f"🧹 Deleted temporary file: {list_txt.name}")
+    except Exception as e:
+        print(f"⚠️ Could not delete {list_txt}: {e}")
+
     return out_mp4
 
 
@@ -736,4 +744,13 @@ def side_by_side_vfr_from_folders(
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, check=True)
     print(f"✅ Wrote side-by-side: {out_mp4}")
+
+    # cleanup
+    try:
+        v_list.unlink()
+        s_list.unlink()
+        print(f"🧹 Deleted temporary files: {v_list.name}, {s_list.name}")
+    except Exception as e:
+        print(f"⚠️ Could not delete temporary files: {e}")
+
     return out_mp4
