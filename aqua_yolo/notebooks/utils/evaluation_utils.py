@@ -1,13 +1,15 @@
 import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
 import random
-from typing import Union
+from typing import Union, Optional, Sequence
 from pathlib import Path
 import cv2
 import numpy as np
 from ultralytics import YOLO
+import glob
+from tqdm import tqdm
+
 
 
 def plot_evaluation_metrics(run_dir: str):
@@ -173,3 +175,95 @@ def plot_yolo_predictions_samples(
 
     plt.tight_layout()
     plt.show()
+
+
+def annotate_images_from_folder(
+    images_dir: Union[str, Path],
+    out_dir: Union[str, Path],
+    weights: Union[str, Path],
+    *,
+    imgsz: int = 640,
+    conf: float = 0.25,
+    device: Optional[str] = None,         # e.g., "0" for GPU, "cpu" for CPU, None = auto
+    classes: Optional[Sequence[int]] = None,  # e.g., [0,1] to restrict classes
+    pattern: str = "*.jpg",               # change to "*.png" or "*.jpg" as needed
+) -> None:
+    """
+    Run YOLO predictions image-by-image and save annotated images with the same filenames.
+    """
+    images_dir = Path(images_dir)
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load model once
+    model = YOLO(str(weights))
+    names = model.names  # can be list/tuple or dict
+
+    # Collect images
+    paths = sorted(images_dir.glob(pattern))
+    if not paths:
+        print(f"No images found in {images_dir} matching {pattern}")
+        return
+
+    # Simple deterministic color palette per class
+    def cls_color(c: int) -> tuple:
+        # nice distinct-ish palette
+        palette = [
+            (255,  56,  56), (255, 159,  56), (255, 255,  56),
+            ( 56, 255,  56), ( 56, 255, 255), ( 56,  56, 255),
+            (255,  56, 255), (180, 130,  70), ( 80, 175,  76),
+        ]
+        return palette[c % len(palette)]
+
+    def draw_boxes(img, boxes, labels):
+        h, w = img.shape[:2]
+        thick = max(2, int(round(0.0025 * (h + w) * 0.5)))
+        for (x1, y1, x2, y2), txt, c in boxes:
+            color = cls_color(c)
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, thick)
+            # label bg box
+            (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            ytxt = max(0, y1 - 4)
+            cv2.rectangle(img, (x1, ytxt - th - 4), (x1 + tw + 6, ytxt), color, -1)
+            cv2.putText(img, txt, (x1 + 3, ytxt - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1, cv2.LINE_AA)
+        return img
+
+    print(f"[INFO] Annotating {len(paths)} images from {images_dir}")
+    for p in tqdm(paths, desc="YOLO annotate"):
+        # Read image
+        img_bgr = cv2.imread(str(p), cv2.IMREAD_COLOR)
+        if img_bgr is None:
+            tqdm.write(f"⚠️ Could not read {p}")
+            continue
+
+        # Predict on a single image
+        res = model.predict(
+            source=str(p),
+            imgsz=imgsz,
+            conf=conf,
+            device=device,
+            classes=classes,
+            verbose=False
+        )[0]
+
+        # Collect detections
+        boxes_to_draw = []
+        if res.boxes is not None and len(res.boxes) > 0:
+            xyxy = res.boxes.xyxy.cpu().numpy().astype(int)
+            cls  = res.boxes.cls.cpu().numpy().astype(int)
+            confs = res.boxes.conf.cpu().numpy()
+            for (x1, y1, x2, y2), c, score in zip(xyxy, cls, confs):
+                # class name lookup (list/tuple or dict)
+                cls_name = names[c] if isinstance(names, (list, tuple)) else names.get(c, str(c))
+                label = f"{cls_name} {score:.2f}"
+                boxes_to_draw.append(((x1, y1, x2, y2), label, c))
+
+        annotated = img_bgr.copy()
+        if boxes_to_draw:
+            annotated = draw_boxes(annotated, boxes_to_draw, labels=True)
+
+        # Save with same filename into out_dir
+        out_path = out_dir / p.name
+        cv2.imwrite(str(out_path), annotated)
+
+    print(f"[DONE] Wrote annotated images to: {out_dir.resolve()}")
