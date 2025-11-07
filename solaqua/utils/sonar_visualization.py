@@ -2,6 +2,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
+from typing import Union, Optional, Callable
+from pathlib import Path
+from datetime import datetime, timezone
+import re
+import subprocess
+from typing import Tuple
+
+
 
 # ================ default intensity enhancer ====================
 
@@ -466,3 +474,266 @@ def plot_cone_view(
         label=("Echo (normalized)" if use_enhanced else "Echo (raw units)")
     )
     return fig
+
+
+
+# =========== Export scripts
+
+
+from PIL import Image
+
+def save_cone_view_image(
+    M: np.ndarray,
+    cfg: dict,
+    out_path: Union[str, Path],
+    *,
+    use_enhanced: bool = True,
+    enhancer: Optional[Callable[[np.ndarray, dict], np.ndarray]] = None,
+    transparent_bg: bool = False,  # set True if you prefer transparent NaN background
+):
+    # --- Orientation (same as plot_cone_view) ---
+    Z = M
+    if cfg.get("transpose_M", False):
+        Z = Z.T
+    if cfg.get("flipY_M", False):
+        Z = Z[::-1, :]
+    if cfg.get("flipX_M", False):
+        Z = Z[:, ::-1]
+
+    if use_enhanced and enhancer is not None:
+        Z = enhancer(Z, cfg)
+
+    # --- Rasterize (same call/signature you use in plot_cone_view) ---
+    cone, _, _, _ = cone_rasterizer_display_cell(
+        Z,
+        fov_deg=float(cfg["fov_deg"]),
+        range_min_m=float(cfg["range_min_m"]),
+        range_max_m=float(cfg["range_max_m"]),
+        coneview_range_min_m=float(cfg.get("coneview_range_min_m", cfg["range_min_m"])),
+        coneview_range_max_m=float(cfg.get("coneview_range_max_m", cfg["range_max_m"])),
+        coneview_angle_min_deg=float(cfg.get("coneview_angle_min_deg", -0.5 * cfg["fov_deg"])),
+        coneview_angle_max_deg=float(cfg.get("coneview_angle_max_deg", +0.5 * cfg["fov_deg"])),
+        img_w=int(cfg["img_w"]),
+        img_h=int(cfg["img_h"]),
+        rotate_deg=float(cfg.get("rotate_deg", 0.0)),
+        bg_value=np.nan,
+    )
+
+    # --- Match imshow(origin="lower"): flip vertically ---
+    cone_disp = np.flipud(cone)
+
+    # --- Match vmin/vmax logic from plot_cone_view ---
+    if use_enhanced:
+        vmin, vmax = 0.0, 1.0
+    else:
+        with np.errstate(all='ignore'):
+            vmin = float(np.nanmin(cone_disp))
+            vmax = float(np.nanmax(cone_disp))
+        if not np.isfinite(vmin) or not np.isfinite(vmax) or vmin == vmax:
+            vmin, vmax = 0.0, 1.0
+
+    # Normalize to 0..1 for colormap
+    with np.errstate(invalid='ignore', divide='ignore'):
+        norm = (cone_disp - vmin) / (vmax - vmin)
+    norm = np.clip(norm, 0.0, 1.0)
+
+    # Colormap and background handling (like cmap.set_bad)
+    cmap_name = cfg["cmap_enh" if use_enhanced else "cmap_raw"]
+    cmap = plt.cm.get_cmap(cmap_name)
+    rgba = cmap(norm)  # shape (H,W,4)
+    nan_mask = np.isnan(cone_disp)
+
+    if transparent_bg:
+        # Transparent where NaN
+        rgba[nan_mask, 3] = 0.0
+    else:
+        # Opaque background color from cfg (default #4b4b4b)
+        bg_hex = cfg.get("bg_color", "#4b4b4b").lstrip("#")
+        bg_rgb = tuple(int(bg_hex[i:i+2], 16) for i in (0, 2, 4))
+        rgba[nan_mask, :3] = np.array(bg_rgb) / 255.0
+        rgba[nan_mask, 3] = 1.0
+
+    # Convert to 8-bit and save
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    img = (rgba[:, :, :3] * 255).astype(np.uint8) if not transparent_bg else (rgba * 255).astype(np.uint8)
+    Image.fromarray(img, mode="RGB" if not transparent_bg else "RGBA").save(out_path)
+    # print(f"✅ Saved cone-view image to {out_path}")
+
+
+    
+
+# ==== helper =========
+def ns_to_utc(ns_timestamp: int) -> datetime:
+    """Convert a nanosecond Unix timestamp to UTC datetime."""
+    seconds = ns_timestamp / 1e9
+    return datetime.fromtimestamp(seconds, tz=timezone.utc)
+
+
+
+
+# ========== Make mp4 from frames folder, frames needs ns-timestamp for names 
+
+
+def build_vfr_mp4_from_ns_frames(
+    frames_dir: Path,
+    out_mp4: Path,
+    *,
+    pattern: str = "*.jpg",
+    codec: str = "libx264",
+    crf: int = 18,
+    preset: str = "medium",
+    min_dur_s: float = 1/120,
+    max_dur_s: float = 1.0,
+    speed: float = 1.0,
+) -> Path:
+    frames_dir = Path(frames_dir)
+    out_mp4 = Path(out_mp4)
+    out_mp4.parent.mkdir(parents=True, exist_ok=True)
+
+    pat = re.compile(r"^(\d+)\.jpg$", re.IGNORECASE)
+    files = sorted([p for p in frames_dir.glob(pattern) if pat.match(p.name)],
+                   key=lambda p: int(p.stem))
+    if not files:
+        raise FileNotFoundError(f"No frames in {frames_dir} matching {pattern} with numeric names.")
+
+    ts = [int(p.stem) for p in files]  # ns → s durations
+    durs = []
+    for i in range(len(ts) - 1):
+        dt = (ts[i+1] - ts[i]) / 1e9
+        dt = max(min_dur_s, min(max_dur_s, dt)) / max(1e-9, speed)
+        durs.append(dt)
+    if not durs:
+        durs = [1.0 / max(1e-9, speed)]
+
+    list_txt = out_mp4.with_suffix(".list.txt")
+    with list_txt.open("w", encoding="utf-8") as f:
+        for p, dur in zip(files[:-1], durs):
+            abs_path = p.resolve()  # <-- absolute
+            f.write(f"file '{abs_path.as_posix()}'\n")
+            f.write(f"duration {dur:.9f}\n")
+        # repeat last frame once (concat demuxer quirk)
+        last_abs = files[-1].resolve()
+        f.write(f"file '{last_abs.as_posix()}'\n")
+        f.write(f"file '{last_abs.as_posix()}'\n")
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "concat", "-safe", "0",
+        "-i", str(list_txt),
+        "-fps_mode", "vfr",              # modern flag
+        "-pix_fmt", "yuv420p",
+        "-c:v", codec, "-crf", str(crf), "-preset", preset,
+        "-movflags", "+faststart",
+        str(out_mp4),
+    ]
+    print("Running:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+    print(f"✅ Wrote {out_mp4}")
+    return out_mp4
+
+
+
+
+
+# ========= make joint vision and sonar video, correctly timed
+
+def _collect_ts_sorted(folder: Path) -> Tuple[list[Path], list[int]]:
+    pat = re.compile(r"^(\d+)\.jpg$", re.IGNORECASE)
+    files = [p for p in folder.glob("*.jpg") if pat.match(p.name)]
+    if not files:
+        raise FileNotFoundError(f"No timestamp-named JPGs in {folder}")
+    files.sort(key=lambda p: int(p.stem))
+    ts = [int(p.stem) for p in files]  # ns
+    return files, ts
+
+def _write_concat_list(files, ts, list_path: Path, *, min_dur=1/120, max_dur=1.0, speed=1.0):
+    list_path.parent.mkdir(parents=True, exist_ok=True)
+    # per-frame durations from deltas (seconds)
+    durs = []
+    for i in range(len(ts)-1):
+        dt = (ts[i+1] - ts[i]) / 1e9
+        dt = max(min_dur, min(max_dur, dt)) / max(1e-9, speed)
+        durs.append(dt)
+    if not durs:
+        durs = [1.0 / max(1e-9, speed)]  # single-frame edge case
+    with list_path.open("w", encoding="utf-8") as f:
+        for p, dur in zip(files[:-1], durs):
+            f.write(f"file '{p.resolve().as_posix()}'\n")
+            f.write(f"duration {dur:.9f}\n")
+        last_abs = files[-1].resolve().as_posix()
+        # concat demuxer quirk: repeat last line to hold duration
+        f.write(f"file '{last_abs}'\n")
+        f.write(f"file '{last_abs}'\n")
+
+def side_by_side_vfr_from_folders(
+    vision_frames_dir: Union[str, Path],
+    sonar_frames_dir: Union[str, Path],
+    out_mp4: Union[str, Path],
+        *,
+    out_height: int = 720,        # output height; width auto-kept for aspect
+    crf: int = 18,
+    preset: str = "slow",
+    min_dur: float = 1/120,       # clamp tiny gaps
+    max_dur: float = 1.0,         # clamp huge gaps
+    speed: float = 1.0,           # 0.5 = slow-mo, 2.0 = fast
+) -> Path:
+    """
+    Build a side-by-side MP4 aligned by real timestamps from two folders of frames
+    named '<ns>.jpg'. Uses FFmpeg concat (VFR) + tpad for start alignment.
+    """
+    vision_frames_dir = Path(vision_frames_dir)
+    sonar_frames_dir  = Path(sonar_frames_dir)
+    out_mp4 = Path(out_mp4)
+    out_mp4.parent.mkdir(parents=True, exist_ok=True)
+
+    # 1) Collect files + timestamps
+    v_files, v_ts = _collect_ts_sorted(vision_frames_dir)
+    s_files, s_ts = _collect_ts_sorted(sonar_frames_dir)
+
+    # 2) Build per-stream concat lists (VFR)
+    v_list = out_mp4.with_suffix(".vision.list.txt")
+    s_list = out_mp4.with_suffix(".sonar.list.txt")
+    _write_concat_list(v_files, v_ts, v_list, min_dur=min_dur, max_dur=max_dur, speed=speed)
+    _write_concat_list(s_files, s_ts, s_list, min_dur=min_dur, max_dur=max_dur, speed=speed)
+
+    # 3) Compute start offset and pad the earlier stream
+    v_start = v_ts[0] / 1e9
+    s_start = s_ts[0] / 1e9
+    pad_v = max(0.0, (max(v_start, s_start) - v_start) / max(1e-9, speed))
+    pad_s = max(0.0, (max(v_start, s_start) - s_start) / max(1e-9, speed))
+
+    # 4) FFmpeg command:
+    #    - two concat inputs
+    #    - pad early stream with tpad=start_duration=<pad>
+    #    - scale both to the same height, preserve aspect (width = -2)
+    #    - hstack side by side, stop at the shorter stream
+    v_in = v_list.resolve().as_posix()
+    s_in = s_list.resolve().as_posix()
+    out = out_mp4.resolve().as_posix()
+
+    pad_v_str = f"tpad=start_duration={pad_v}:start_mode=clone" if pad_v > 0 else "null"
+    pad_s_str = f"tpad=start_duration={pad_s}:start_mode=clone" if pad_s > 0 else "null"
+
+    filter_complex = (
+        f"[0:v]{pad_v_str},scale=-2:{out_height}[v0];"
+        f"[1:v]{pad_s_str},scale=-2:{out_height}[v1];"
+        f"[v0][v1]hstack=inputs=2:shortest=1[v]"
+    )
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "concat", "-safe", "0", "-i", v_in,
+        "-f", "concat", "-safe", "0", "-i", s_in,
+        "-fps_mode", "vfr",
+        "-filter_complex", filter_complex,
+        "-map", "[v]",
+        "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-crf", str(crf), "-preset", preset,
+        "-movflags", "+faststart",
+        out,
+    ]
+    print("Running:", " ".join(cmd))
+    subprocess.run(cmd, check=True)
+    print(f"✅ Wrote side-by-side: {out_mp4}")
+    return out_mp4
