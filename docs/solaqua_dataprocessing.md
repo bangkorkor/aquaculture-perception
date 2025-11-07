@@ -49,8 +49,8 @@ The dataset used is **SOLAQUA**, available from [SINTEF Open Data](https://data.
 - First we set the `_video.bag` path as `VIDEO_BAG` and we select the frame we want to save as `VIDEO_FRAME`. These are feed to the `load_sonoptix_frame_from_bag` function.
 
 ```python
-DATA_BAG = Path("../../uw_yolov8/data/SOLAQUA/2024-08-20_13-57-42_data.bag")
-VIDEO_BAG = Path("../../uw_yolov8/data/SOLAQUA/2024-08-20_13-57-42_video.bag")
+DATA_BAG = Path("...")
+VIDEO_BAG = Path("...")
 VIDEO_FRAME = 1000
 
 M_raw, t_ns = load_sonoptix_frame_from_bag(VIDEO_BAG, VIDEO_FRAME) # returns M_raw and timestamp
