@@ -60,7 +60,7 @@ def enhance_intensity(
 
     return np.clip(Zs, 0.0, 1.0).astype(np.float32)
 
-# ========== custom enhancer to match public sonar dataset =================
+# ========== custom enhancer to match cfc sonar dataset =================
 
 def apply_gaussian_noise_01(Z: np.ndarray, cfg: dict, *, seed=None) -> np.ndarray:
     """
@@ -178,9 +178,9 @@ def plot_raw_frame(M: np.ndarray, frame_index: int, cfg: dict):
     Z = M.copy()
     if cfg.get("transpose_M", False): # returns cfg[key] if it exists, false otherwise
         Z = Z.T     # we transpose the matrix (swap H and W)
-    if cfg.get("flipX_M", False):
+    if cfg.get("flipY_m", False):
         Z = Z[::-1, :]  # we flip the beam angles 
-    if cfg.get("flipY_M", False):
+    if cfg.get("flipX_m", False):
         Z = Z[:, ::-1]  # we flip the range angles
 
     # --- imshow extent in angle+range coordinates ---
@@ -226,9 +226,9 @@ def plot_enhanced_frame(M: np.ndarray, frame_index: int, cfg: dict, enhancer: ca
     Z = M.copy()
     if cfg.get("transpose_M", False): # returns cfg[key] if it exists, false otherwise
         Z = Z.T     # we transpose the matrix (swap H and W)
-    if cfg.get("flipX_M", False):
+    if cfg.get("flipY_m", False):
         Z = Z[::-1, :]  # we flip the beam angles 
-    if cfg.get("flipY_M", False):
+    if cfg.get("flipX_m", False):
         Z = Z[:, ::-1]  # we flip the range angles
 
     
@@ -398,9 +398,9 @@ def plot_cone_view(
     Z = M
     if cfg.get("transpose_M", False):
         Z = Z.T
-    if cfg.get("flipY_M", False):
+    if cfg.get("flipY_m", False):
         Z = Z[::-1, :]
-    if cfg.get("flipX_M", False):
+    if cfg.get("flipX_m", False):
         Z = Z[:, ::-1]
 
     # Optional enhancement
@@ -495,9 +495,9 @@ def save_cone_view_image(
     Z = M
     if cfg.get("transpose_M", False):
         Z = Z.T
-    if cfg.get("flipY_M", False):
+    if cfg.get("flipY_m", False):
         Z = Z[::-1, :]
-    if cfg.get("flipX_M", False):
+    if cfg.get("flipX_m", False):
         Z = Z[:, ::-1]
 
     if use_enhanced and enhancer is not None:
