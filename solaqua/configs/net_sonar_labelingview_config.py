@@ -59,7 +59,7 @@ net_sonar_labelingview_config = {
     # ===== cone view ===========
     "img_w": 1200,
     "img_h": 700,
-    "bg_color": "green",
+    "bg_color": "#4b4b4b",
     "rotate_deg": 0.0,  
     "coneview_range_min_m": 0.2,
     "coneview_range_max_m": 8.0,
