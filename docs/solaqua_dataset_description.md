@@ -22,10 +22,10 @@ Filename (timestamp)		        Action performed
 
 2024-08-20_13-55-34		Manual control - shallow        **using** Few fish at the end. Net far away
 2024-08-20_13-57-42		Manual control - shallow        **using** Some fish here and there. Net is medium away.
-2024-08-20_14-16-05	        Manual control - deeper
+2024-08-20_14-16-05	    Manual control - deeper         **using** net labeling
 2024-08-20_14-22-12		Manual control - deeper	
 2024-08-20_14-24-35		Manual control - deeper
-2024-08-20_14-31-29         Manual control - shallow    **using** Few fish before the end. Net is far away
+2024-08-20_14-31-29     Manual control - shallow        **using** Few fish before the end. Net is far away
 	
 
 Filename (timestamp)		                                                   Action performed
@@ -43,9 +43,9 @@ Q: Heading-angle offset from net [deg]
 The following sets are somewhat inconsistent in terms of net distance:
 ---------------------------------------------------------------
 Filename	                       D0	D1	Z	V	Q
-2024-08-20_14-34-07        1.5   1.5  2     0.2    0
+2024-08-20_14-34-07        1.5   1.5  2     0.2    0    **using** for net-labeling
 2024-08-20_14-36-22        1.5   1.5  2     0.2    0
-2024-08-20_14-38-37        2.0   2.0  2     0.2    0
+2024-08-20_14-38-37        2.0   2.0  2     0.2    0    **using** Few fishes. Medium distance to net. Used for labeling net. 
 2024-08-20_14-49-47        2.0   2.0  2     0.2    0
 2024-08-20_14-54-52        2.0   2.0  2     0.2    0
 2024-08-20_14-57-38        2.0   1.1  2     0.2    0
@@ -67,16 +67,16 @@ Filename	                       D0	D1	Z	V	Q
 2024-08-20_16-43-25		1	1.5	2	0.2	0
 2024-08-20_16-45-21		1	1.5	2	0.2	0
 2024-08-20_16-51-57		1	1.5	2	0.2	0
-2024-08-20_16-47-54		1	1.5	2	0.2	0
+2024-08-20_16-47-54		1	1.5	2	0.2	0       **using** net labeling
 							
-2024-08-20_16-54-36		1	1.5	2	0.1	0
-2024-08-20_16-57-46		1	1.5	2	0.1	0
+2024-08-20_16-54-36		1	1.5	2	0.1	0       
+2024-08-20_16-57-46		1	1.5	2	0.1	0       
 2024-08-20_17-02-00		1	1.5	2	0.1	0       **using** stable data of the net. Few fishes, close to new
 2024-08-20_17-04-52		0.5	1	2	0.1	0
 2024-08-20_17-08-14		0.5	1	2	0.1	0
 2024-08-20_17-11-14		0.5	1	2	0.1	0
 						
-2024-08-20_17-14-36		1	1.5	2	0.3	0
+2024-08-20_17-14-36		1	1.5	2	0.3	0       **using** net labeling
 2024-08-20_17-22-40		1	1.5	2	0.3	0
 2024-08-20_17-31-58		1	1.5	2	0.3	0
 2024-08-20_17-34-52		1	1.5	2	0.3	0
@@ -102,7 +102,7 @@ Filename	                       D0	D1	Z	V	Q
 2024-08-20_18-47-40		1	1	2	0.2	10      **using** its too close
 2024-08-20_18-53-59		1	1	2	0.2	10
 							
-2024-08-20_18-50-22		1	1.5	2	0.2	0
+2024-08-20_18-50-22		1	1.5	2	0.2	0   **using** net labeling
 2024-08-20_18-52-15		1	1.5	2	0.2	0
 ---------------------------------------------------------------
 
