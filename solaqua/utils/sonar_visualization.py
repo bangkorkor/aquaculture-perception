@@ -8,11 +8,11 @@ from datetime import datetime, timezone
 import re
 import subprocess
 from typing import Tuple
+import cv2
 
 
 
 # ================ default intensity enhancer ====================
-
 def _tvg_amplitude_curve(H: int, rmin: float, rmax: float, alpha_db_per_m: float, r0: float) -> np.ndarray:
     r = np.linspace(rmin, rmax, H, dtype=np.float32)
     if alpha_db_per_m <= 0:
@@ -61,7 +61,6 @@ def enhance_intensity(
     return np.clip(Zs, 0.0, 1.0).astype(np.float32)
 
 # ========== custom enhancer to match cfc sonar dataset =================
-
 def apply_gaussian_noise_01(Z: np.ndarray, cfg: dict, *, seed=None) -> np.ndarray:
     """
     Add simple additive Gaussian noise to a [0,1] image Z.
@@ -166,10 +165,113 @@ def enhance_cfc_style(M: np.ndarray, cfg: dict) -> np.ndarray:
 
     return np.clip(Zn, 0.0, 1).astype(np.float32)
 
+# ========= binary enhanceer used to making labeling easy
+def enhance_bw(M: np.ndarray, cfg: dict) -> np.ndarray:
+    """
+    Multi-effect sonar enhancer combining:
+      - denoise
+      - cluster dilation boost
+      - robust normalization
+      - gamma curve
+      - edgy highlight boost
+      - (optional) unsharp mask sharpening
+      - (optional) CLAHE local contrast
+      - (optional) cluster-only brightness mask
+      - (optional) highlight rim effect
+    All effects are controlled by config parameters.
+    """
+    Z = np.asarray(M, dtype=np.float32)
+    Z = np.nan_to_num(Z, nan=0.0, neginf=0.0, posinf=0.0)
+
+    # ---------------------------------------------------------------
+    # 1) Base denoise
+    # ---------------------------------------------------------------
+    k_denoise = int(cfg.get("denoise_kernel", 3))
+    if k_denoise >= 3:
+        Z = cv2.GaussianBlur(Z, (k_denoise, k_denoise), 0)
+
+    # ---------------------------------------------------------------
+    # 2) Cluster dilation boost
+    # ---------------------------------------------------------------
+    k_cluster = int(cfg.get("cluster_kernel", 5))
+    if k_cluster > 1:
+        Z_dil = cv2.dilate(Z, np.ones((k_cluster, k_cluster), np.uint8))
+        w = float(cfg.get("cluster_blend", 0.4))
+        Z = (1-w) * Z + w * Z_dil
+
+    # ---------------------------------------------------------------
+    # 3) Robust global normalization to [0,1]
+    # ---------------------------------------------------------------
+    p_low  = float(cfg.get("p_low", 5.0))
+    p_high = float(cfg.get("p_high", 99.5))
+    lo, hi = np.percentile(Z, [p_low, p_high])
+    hi = max(hi, lo + 1e-6)
+    Z = (np.clip(Z, lo, hi) - lo) / (hi - lo)
+
+    # ---------------------------------------------------------------
+    # 4) Gamma curve
+    # ---------------------------------------------------------------
+    gamma = float(cfg.get("gamma", 0.7))
+    Z = np.clip(Z, 0, 1) ** gamma
+
+    # ---------------------------------------------------------------
+    # 5) Edgy highlight boost
+    # ---------------------------------------------------------------
+    edgy = float(cfg.get("edgy_boost", 0.25))
+    if edgy > 0:
+        Z = Z + edgy * (Z ** 2)
+        Z = np.clip(Z, 0, 1)
+
+    # ---------------------------------------------------------------
+    # 6) OPTIONAL: Unsharp mask (sharpening)
+    # ---------------------------------------------------------------
+    if cfg.get("sharpen_enabled", False):
+        amount = float(cfg.get("sharpen_amount", 1.0))  # 0.5–2.0
+        blur = cv2.GaussianBlur(Z, (0,0), sigmaX=3)
+        Z = np.clip(Z + amount * (Z - blur), 0, 1)
+
+    # ---------------------------------------------------------------
+    # 7) OPTIONAL: CLAHE – local contrast (strong)
+    # ---------------------------------------------------------------
+    if cfg.get("clahe_enabled", False):
+        clahe = cv2.createCLAHE(
+            clipLimit=float(cfg.get("clahe_clip", 2.0)),
+            tileGridSize=(8, 8)
+        )
+        Z8 = np.uint8(Z * 255)
+        Z8 = clahe.apply(Z8)
+        Z = Z8.astype(np.float32) / 255.0
+
+    # ---------------------------------------------------------------
+    # 8) OPTIONAL: Cluster-only brightness mask
+    #     (boost only areas that are spatially connected)
+    # ---------------------------------------------------------------
+    if cfg.get("cluster_mask_enabled", False):
+        thr = float(cfg.get("cluster_mask_thr", 0.3))
+        mask = (Z > thr).astype(np.float32)
+        mask = cv2.dilate(mask, np.ones((5,5), np.uint8))
+        strength = float(cfg.get("cluster_mask_strength", 0.4))
+        Z = Z + strength * Z * mask
+        Z = np.clip(Z, 0, 1)
+
+    # ---------------------------------------------------------------
+    # 9) OPTIONAL: Highlight rim / glow
+    # ---------------------------------------------------------------
+    if cfg.get("rim_enabled", False):
+        # detect edges
+        Z8 = np.uint8(Z * 255)
+        edges = cv2.Canny(Z8, 30, 120)
+        edges = cv2.dilate(edges, np.ones((3,3), np.uint8))
+        edges = cv2.GaussianBlur(edges.astype(np.float32), (5,5), 0) / 255.0
+
+        rim_strength = float(cfg.get("rim_strength", 0.2))  # 0.1–0.4
+        Z = np.clip(Z + rim_strength * edges, 0, 1)
+
+    return Z.astype(np.float32)
 
 
-# --- raw plot ----------------------------------------------------------------
 
+# ==== raw plot =======
 def plot_raw_frame(M: np.ndarray, frame_index: int, cfg: dict):
     """
     Plot the raw sonar frame 
@@ -217,7 +319,6 @@ def plot_raw_frame(M: np.ndarray, frame_index: int, cfg: dict):
 
 
 # --- enhanced plot ------------------------------------------------------------
-
 def plot_enhanced_frame(M: np.ndarray, frame_index: int, cfg: dict, enhancer: callable = None):
     """
     Plot  the enhanced sonar frame (after orientation + intensity enhancement).
