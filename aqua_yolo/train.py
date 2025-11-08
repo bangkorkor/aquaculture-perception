@@ -9,12 +9,12 @@ if __name__ == "__main__":
     m.info()  # non-zero FLOPs confirms forward path OK
 
     m.train(
-        data="data/CFC_gray/cfc_gray.yaml",
+        data="data/CFC_gray_tiny/cfc_gray_tiny.yaml",
         pretrained=False,          # Safest off
-        epochs=60, 
+        epochs=130, 
         imgsz=640,
-        batch=512,
-        nbs=512,
+        batch=256,
+        nbs=256,
 
 
     # optimizer
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         cos_lr=True,
         lrf=0.01,
         warmup_epochs=3,
-        patience=20,            
+        patience=40,            
 
 
     # loss balance – tilt a bit toward recall
@@ -62,10 +62,9 @@ if __name__ == "__main__":
         workers=8,                 # safe
         device=[0, 1, 2, 3],
         project="runs_aquayolo",
-        name="cfc_gray_adamW_m",
+        name="cfc_gray_tiny_adamW_m",
         seed=0,
         plots=False,
         cache=False,
         amp=False,  
     )
-
