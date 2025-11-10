@@ -11,6 +11,7 @@ __pycache__/
 myenv/
 uw_yolov8/data/
 aqua_yolo/data/
+solaqua/data/
 output/
 
 # Models & large binaries
@@ -19,6 +20,7 @@ output/
 *.npy
 *.png
 *.jpg
+
 
 # OS/editor cruft
 .DS_Store
