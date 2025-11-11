@@ -1,4 +1,3 @@
-
 from ultralytics import YOLO
 
 
@@ -9,62 +8,52 @@ if __name__ == "__main__":
     m.info()  # non-zero FLOPs confirms forward path OK
 
     m.train(
-        data="data/CFC_gray_tiny/cfc_gray_tiny.yaml",
+        data="../solaqua/data/net_sonar/net_sonar.yaml",
         pretrained=False,          # Safest off
-        epochs=130, 
-        imgsz=640,
-        batch=256,
-        nbs=256,
+        epochs=150, 
+        patience=50,   
+        imgsz=1280,
+        batch=12,
+        nbs=64,
 
-
-    # optimizer
-        optimizer="AdamW",
-        lr0=3e-4,
-        weight_decay=0.01,
+    # optimizer 
+        optimizer="SGD",
+        lr0=0.005,                      # conservative for SGD; adjust later if needed
+        momentum=0.9,
+        weight_decay=5e-4,
         cos_lr=True,
         lrf=0.01,
-        warmup_epochs=3,
-        patience=40,            
+        warmup_epochs=20,     
+                 
 
 
-    # loss balance – tilt a bit toward recall
+    # loss balance – tilt a bit toward recall ????
         box=10.0, cls=0.6, dfl=1.3,
 
 
-    # sonar-friendly aug, we do nothing really, is this ok?
-        auto_augment=None,  
-        # geometry
-        degrees=0.0,          # no rotation (shadow direction is meaningful)
-        shear=0.0,
-        perspective=0.0,
-        translate=0.02,       # small shifts are ok
-        scale=0.35,            # Ultralytics default scale jitter; fine for sonar
-
-        # photometrics
-        hsv_h=0.0, hsv_s=0.0, hsv_v=0.0,  # disable HSV for gray-scale sonar
-
-        # composition
-        mosaic=0.0,           # off (mosaic creates unrealistic seabed continuity)
-        mixup=0.0,            # off (blends break acoustic edges)
-        copy_paste=0.0,       # off (unlikely to preserve shadows correctly)
-
-        # flips
-        fliplr=0.05,           # small chance; left/right symmetry may be acceptable
-        flipud=0.0,           # avoid flipping seabed “upside-down”
-
-        # occlusion-like
-        erasing=0.15,          # light Random Erasing to mimic dropouts/occlusions
+    # augmentation, light
+        rect=False,
+        mosaic=0.08,
+        close_mosaic=100, # only on for the 50 first. 
+        mixup=0.05,
+        copy_paste=0.0,
+        erasing=0.0,
+        auto_augment=None,
+        hsv_h=0.0, hsv_s=0.0, hsv_v=0.0,
+        degrees=3.0, shear=0.0, perspective=0.0,
+        translate=0.06,
+        scale=0.20,
+        fliplr=0.0, flipud=0.0,
         
-    
 
         
     # system
-        workers=8,                 # safe
-        device=[0, 1, 2, 3],
+        workers=2,                 # safe
+        device=0,
         project="runs_aquayolo",
-        name="cfc_gray_tiny_adamW_m",
+        name="net_sonar_SGD_1280_lightaug",
         seed=0,
         plots=False,
         cache=False,
-        amp=False,  
+        amp=False,   
     )
