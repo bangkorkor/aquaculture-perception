@@ -184,6 +184,7 @@ def annotate_images_from_folder(
     *,
     imgsz: int = 640,
     conf: float = 0.25,
+    iou: float = 0.7,
     device: Optional[str] = None,         # e.g., "0" for GPU, "cpu" for CPU, None = auto
     classes: Optional[Sequence[int]] = None,  # e.g., [0,1] to restrict classes
     pattern: str = "*.jpg",               # change to "*.png" or "*.jpg" as needed
@@ -241,6 +242,7 @@ def annotate_images_from_folder(
             source=str(p),
             imgsz=imgsz,
             conf=conf,
+            iou=iou,
             device=device,
             classes=classes,
             verbose=False
