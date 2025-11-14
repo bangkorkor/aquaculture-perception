@@ -8,12 +8,12 @@ if __name__ == "__main__":
     m.info()  # non-zero FLOPs confirms forward path OK
 
     m.train(
-        data="../solaqua/data/net_sonar/net_sonar.yaml",
+        data="data/net_fish_cfc_sonar/net_fish_cfc_sonar.yaml",
         pretrained=False,          # Safest off
         epochs=150, 
         patience=50,   
         imgsz=1280,
-        batch=12,
+        batch=48,
         nbs=64,
 
     # optimizer 
@@ -48,12 +48,12 @@ if __name__ == "__main__":
 
         
     # system
-        workers=2,                 # safe
-        device=0,
+        workers=8,                 # safe
+        device=[0, 1, 2, 3],
         project="runs_aquayolo",
-        name="net_sonar_SGD_1280_lightaug",
+        name="net_fish_cfc_sonar_SGD_1280_lightaug",
         seed=0,
         plots=False,
         cache=False,
-        amp=False,   
+        amp=True,   
     )
