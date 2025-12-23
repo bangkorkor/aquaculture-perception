@@ -2109,7 +2109,7 @@ class FasterBlock(nn.Module):
         c = c1 if c2 is None else c2
         assert c == c1, "FasterBlock expects c2==c1 (same in/out channels)."
         self.pconv = PConv(c, k=3, s=1, r=r)
-        self.expand = UWYOLO_ConvBNAct(c, 2 * c, k=1, s=1, act='GELU')
+        self.expand = UWYOLO_ConvBNAct(c, 2 * c, k=1, s=1, act='RELU')
         self.project = UWYOLO_ConvBNAct(2 * c, c, k=1, s=1, act=None)
 
     def forward(self, x):
