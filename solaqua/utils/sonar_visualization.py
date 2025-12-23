@@ -105,7 +105,7 @@ def enhance_cfc_style(M: np.ndarray, cfg: dict) -> np.ndarray:
     rmax = float(cfg["range_max_m"])
     rng = _range_axis(H, rmin, rmax)[:, None]  # (H,1)
 
-
+    # This was not used in final training
     # --- 2) TVG: geometric spreading + absorption ---
     # amplitude ~ 1/r^g  (g in [0, 2]); compensate by multiplying by r^g
     g_geo = float(cfg.get("ds_geo_exponent", 1.0))  # 1.0 is common for amplitude
@@ -123,6 +123,7 @@ def enhance_cfc_style(M: np.ndarray, cfg: dict) -> np.ndarray:
 
     Z = Z * G_geo * G_abs  # (H,W)
 
+    # Close to non effect for final training, parameters too low!
     # --- 3) Per-range background flattening (remove water-column baseline) ---
     # subtract a percentile across beams for each row; keep positives
     p_bg = float(cfg.get("ds_bg_percentile", 60.0))  # 50..70 works well
@@ -131,6 +132,7 @@ def enhance_cfc_style(M: np.ndarray, cfg: dict) -> np.ndarray:
     Z = Z - scale_bg * bg
     Z = np.maximum(Z, 0.0, dtype=np.float32)
 
+    # very little effect! dont mention. 
     # --- 4) Log/dB compression ---
     eps = float(cfg.get("ds_eps_log", 1e-5))
     Zc = 20.0 * np.log10(Z + eps)  # dB-like scale
@@ -149,7 +151,7 @@ def enhance_cfc_style(M: np.ndarray, cfg: dict) -> np.ndarray:
         Zn = np.clip(Zn, 0.0, 1.0) ** gamma
 
     
-    # --- 6.5) (Optional) Noise: adds noise
+    # --- 6.5)  Noise: adds noise
     Zn = apply_gaussian_noise_01(Z, cfg)
 
     # --- 7) Soft floor to push background to mid-gray (optional) ---
