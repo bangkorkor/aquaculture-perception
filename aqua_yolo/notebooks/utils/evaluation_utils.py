@@ -177,6 +177,115 @@ def plot_yolo_predictions_samples(
     plt.show()
 
 
+
+def save_yolo_side_by_side_samples(
+    images_dir: Union[str, Path],
+    labels_dir: Union[str, Path],
+    weights: Union[str, Path],
+    output_dir: Union[str, Path],
+    num_samples: int = 6,
+    imgsz: int = 640,
+    conf_thres: float = 0.25,
+    seed: int = 0,
+    exts=(".jpg", ".jpeg", ".png", ".bmp", ".webp"),
+) -> None:
+    images_dir = Path(images_dir)
+    labels_dir = Path(labels_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    rng = random.Random(seed)
+
+    model = YOLO(str(weights))
+    names = model.names  # can be list/tuple or dict
+
+    def cls_name(c: int) -> str:
+        return names[c] if isinstance(names, (list, tuple)) else names.get(c, str(c))
+
+    def yolo_txt_to_xyxy(line: str, img_w: int, img_h: int):
+        c, cx, cy, w, h = line.strip().split()[:5]
+        c = int(float(c))
+        cx, cy, w, h = map(float, (cx, cy, w, h))
+        x1 = int(round((cx - w / 2) * img_w))
+        y1 = int(round((cy - h / 2) * img_h))
+        x2 = int(round((cx + w / 2) * img_w))
+        y2 = int(round((cy + h / 2) * img_h))
+        return c, x1, y1, x2, y2
+
+    def draw_boxes(img, boxes, labels=None, color=(0, 255, 0), thickness=2):
+        for i, (x1, y1, x2, y2) in enumerate(boxes):
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness)
+            if labels is not None:
+                txt = labels[i]
+                (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                ytxt = max(0, y1 - 6)
+                cv2.rectangle(img, (x1, ytxt - th - 6), (x1 + tw + 6, ytxt), color, -1)
+                cv2.putText(img, txt, (x1 + 3, ytxt - 3),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        return img
+
+    # collect images
+    image_paths = sorted([p for p in images_dir.rglob("*") if p.suffix.lower() in exts])
+    if not image_paths:
+        print(f"No images found in {images_dir}")
+        return
+
+    rng.shuffle(image_paths)
+    image_paths = image_paths[:num_samples]
+
+    saved = 0
+    for img_path in image_paths:
+        img_bgr = cv2.imread(str(img_path))
+        if img_bgr is None:
+            print(f"⚠️ Could not read {img_path}")
+            continue
+        h, w = img_bgr.shape[:2]
+
+        # --- Ground truth ---
+        gt_boxes, gt_labels = [], []
+        lbl_path = labels_dir / f"{img_path.stem}.txt"
+        if lbl_path.exists():
+            for line in lbl_path.read_text().splitlines():
+                if not line.strip():
+                    continue
+                c, x1, y1, x2, y2 = yolo_txt_to_xyxy(line, w, h)
+                gt_boxes.append((x1, y1, x2, y2))
+                gt_labels.append(cls_name(c))
+        gt_img = draw_boxes(img_bgr.copy(), gt_boxes, gt_labels, color=(0, 200, 0))
+
+        # --- Predictions ---
+        res = model.predict(str(img_path), imgsz=imgsz, conf=conf_thres, verbose=False)[0]
+        pred_boxes, pred_labels = [], []
+        if res.boxes is not None and len(res.boxes) > 0:
+            xyxy = res.boxes.xyxy.cpu().numpy().astype(int)
+            cls  = res.boxes.cls.cpu().numpy().astype(int)
+            conf = res.boxes.conf.cpu().numpy()
+            for (x1, y1, x2, y2), c, p in zip(xyxy, cls, conf):
+                pred_boxes.append((x1, y1, x2, y2))
+                pred_labels.append(f"{cls_name(c)} {p:.2f}")
+        pred_img = draw_boxes(img_bgr.copy(), pred_boxes, pred_labels, color=(0, 0, 255))
+
+        # --- Add headers + concatenate side-by-side ---
+        def add_header(im, text):
+            header_h = 36
+            out = np.zeros((im.shape[0] + header_h, im.shape[1], 3), dtype=np.uint8)
+            out[header_h:] = im
+            cv2.putText(out, text, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                        (255, 255, 255), 2, cv2.LINE_AA)
+            return out
+
+        left  = add_header(gt_img,  "GT (green)")
+        right = add_header(pred_img, "Pred (red)")
+
+        side_by_side = cv2.hconcat([left, right])
+
+        out_path = output_dir / f"{img_path.stem}_gt_pred.jpg"
+        cv2.imwrite(str(out_path), side_by_side)
+        saved += 1
+
+    print(f"Saved {saved} side-by-side images to: {output_dir.resolve()}")
+
+
 def annotate_images_from_folder(
     images_dir: Union[str, Path],
     out_dir: Union[str, Path],
