@@ -1,0 +1,17 @@
+
+train: /cluster/home/henrban/aquaculture-perception/data-processing/vision/RUOD/processed/images/train
+val:   /cluster/home/henrban/aquaculture-perception/data-processing/vision/RUOD/processed/images/val
+test:  /cluster/home/henrban/aquaculture-perception/data-processing/vision/RUOD/processed/images/test
+
+# RUOD has 10 classes
+names:
+  - holothurian
+  - echinus
+  - scallop
+  - starfish
+  - fish
+  - coral
+  - diver
+  - cuttlefish
+  - turtle
+  - jellyfish

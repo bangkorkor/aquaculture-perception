@@ -13,6 +13,9 @@ uw_yolov8/data/
 aqua_yolo/data/
 solaqua/data/
 output/
+# ignores every processed folder within data-processing:
+data-processing/**/processed/   
+
 
 # Models & large binaries
 *.bag
@@ -20,6 +23,8 @@ output/
 *.npy
 *.png
 *.jpg
+*.zip
+# *.txt. # we could do it like this maybe??
 
 
 # OS/editor cruft
