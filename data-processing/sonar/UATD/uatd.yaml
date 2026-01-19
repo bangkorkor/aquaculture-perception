@@ -1,0 +1,17 @@
+
+train: /cluster/home/henrban/aquaculture-perception/data-processing/sonar/UATD/processed/images/train
+val:   /cluster/home/henrban/aquaculture-perception/data-processing/sonar/UATD/processed/images/val
+test:  /cluster/home/henrban/aquaculture-perception/data-processing/sonar/UATD/processed/images/test
+
+# UATD has 10 classes
+names:
+  - human-body
+  - ball
+  - circle-cage
+  - square-cage
+  - tyre
+  - metal-bucket
+  - cube
+  - cylinder
+  - plane
+  - rov
