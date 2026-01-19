@@ -1,0 +1,8 @@
+
+train: /cluster/home/henrban/aquaculture-perception/data-processing/vision/DeepFish/processed/images/train
+val:   /cluster/home/henrban/aquaculture-perception/data-processing/vision/DeepFish/processed/images/val
+test:  /cluster/home/henrban/aquaculture-perception/data-processing/vision/DeepFish/processed/images/test
+
+# RUOD has 10 classes
+names:
+  - fish
