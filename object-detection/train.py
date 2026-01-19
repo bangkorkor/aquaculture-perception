@@ -1,31 +1,65 @@
-# train.py
+import argparse
 from ultralytics import YOLO
 
+from utils.io import read_json
+from utils.paths import objdet_root, resolve_from_objdet
+from utils.run_registry import load_runs_csv
+
+
 def main():
-    # Load custom model cfg
-    model = YOLO("configs/models/uw_yolov8.yaml").load("weights/yolov8s.pt")  # load a pretrained model 
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--id", required=True, help="Run id in runs.csv")
+    ap.add_argument("--dry", action="store_true", help="Print resolved config and exit")
+    args = ap.parse_args()
+
+    root = objdet_root()
+
+    runs = load_runs_csv(root / "runs.csv")
+    if args.id not in runs:
+        raise KeyError(f"Run '{args.id}' not found. Available: {', '.join(sorted(runs.keys()))}")
+
+    run = runs[args.id]
+
+    param_sets = read_json(root / "configs" / "training-params.json").get("sets", {})
+    params_id = (run.get("params_id") or "default").strip()
+    if params_id not in param_sets:
+        raise KeyError(f"params_id '{params_id}' not found. Available: {', '.join(sorted(param_sets.keys()))}")
+
+    # All training kwargs come from training-params.json
+    train_kwargs = dict(param_sets[params_id])
+
+    # Required per-run fields
+    data_yaml = resolve_from_objdet(run["data"])
+    model_cfg = resolve_from_objdet(run["model"])
+
+    train_kwargs["data"] = str(data_yaml)
+
+    # Optional per-run routing fields
+    if run.get("project"):
+        train_kwargs["project"] = run["project"]
+    if run.get("name"):
+        train_kwargs["name"] = run["name"]
+
+    # Optional pretrained checkpoint
+    pretrained = resolve_from_objdet(run["pretrained"]) if run.get("pretrained") else None
+
+    if args.dry:
+        print({
+            "id": args.id,
+            "model": str(model_cfg),
+            "pretrained": str(pretrained) if pretrained else None,
+            "params_id": params_id,
+            "train_kwargs": train_kwargs
+        })
+        return
+
+    model = YOLO(str(model_cfg))
+    if pretrained:
+        model = model.load(str(pretrained))
+
     model.info(verbose=True)
-
-    model.train(
-        data="../data-processing/vision/RUOD/ruod.yaml",
-        epochs=300,
-        imgsz=640,
-        batch=32,                    
-        optimizer="SGD",
-        lr0=0.01,
-        momentum=0.937,
-        weight_decay=0.0005,
-        patience=30,
-        amp=False,     # <— disable AMP self-check
-        device=[0],
-        workers=2,
-        project="runs_uwyolo",
-        name="ruod_0873_sgd300_1gpu",
-        seed=0,
-    )
-
+    model.train(**train_kwargs)
 
 
 if __name__ == "__main__":
     main()
-    
