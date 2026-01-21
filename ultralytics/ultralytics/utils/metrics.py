@@ -83,6 +83,7 @@ def bbox_iou(
     GIoU: bool = False,
     DIoU: bool = False,
     CIoU: bool = False,
+    WIoU: bool = False,
     eps: float = 1e-7,
 ) -> torch.Tensor:
     """
@@ -128,6 +129,28 @@ def bbox_iou(
 
     # IoU
     iou = inter / union
+    # MY CODE:::::: --- WIoU v1 (returns pseudo-IoU so that (1 - returned) == WIoU loss) ---
+    if WIoU:
+        if CIoU or DIoU or GIoU:
+            raise ValueError("Use only one of {WIoU, CIoU, DIoU, GIoU} at a time.")
+
+        # convex (smallest enclosing box) width/height
+        cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)
+        ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)
+
+        # center distance squared (same formulation as DIoU/CIoU code)
+        c2 = cw.pow(2) + ch.pow(2) + eps
+        rho2 = (
+            (b2_x1 + b2_x2 - b1_x1 - b1_x2).pow(2) + (b2_y1 + b2_y2 - b1_y1 - b1_y2).pow(2)
+        ) / 4
+
+        r = torch.exp(rho2 / c2)  # WIoU weight
+
+        # Return "pseudo IoU" so existing loss (1 - iou) becomes r*(1 - IoU)
+        return 1.0 - r * (1.0 - iou)
+
+
+
     if CIoU or DIoU or GIoU:
         cw = b1_x2.maximum(b2_x2) - b1_x1.minimum(b2_x1)  # convex (smallest enclosing box) width
         ch = b1_y2.maximum(b2_y2) - b1_y1.minimum(b2_y1)  # convex height
