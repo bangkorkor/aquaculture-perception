@@ -59,15 +59,22 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
-    PConv,
+   
+)
+from .custom_blocks import (
+ PConv,
     FasterBlock,
     GSConv,
     LC2f,
     AquaResidualBlock, 
     FAU, 
     CAFS, 
-    DSAM
+    DSAM,
+    AGW_CBAM, 
+    AGW_GSConv, 
+    SEC2f
 )
+
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -194,5 +201,7 @@ __all__ = (
     "AquaResidualBlock", 
     "FAU", 
     "CAFS", 
-    "DSAM"
+    "DSAM",
+    "AGW_GSConv"
+
 )
