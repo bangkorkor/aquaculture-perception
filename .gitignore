@@ -24,7 +24,11 @@ data-processing/**/processed/
 *.png
 *.jpg
 *.zip
-# *.txt. # we could do it like this maybe??
+
+sam3.pt
+FastSAM-s.pt
+FastSAM-x.pt
+
 
 
 # OS/editor cruft
