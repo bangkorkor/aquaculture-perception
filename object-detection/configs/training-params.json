@@ -31,6 +31,22 @@
         "seed": 0
       },
 
+      "ruod_128_batch": {
+        "epochs": 300,
+        "pretrained":false,
+        "patience": 30,
+        "imgsz": 640,
+        "batch": 128,
+        "optimizer": "SGD",
+        "lr0": 0.01,
+        "momentum": 0.937,
+        "weight_decay": 0.0005,
+        "amp": false,
+        "device": [0],
+        "workers": 2,
+        "seed": 0
+      },
+
       
   
 

@@ -2,4 +2,4 @@ id,model,pretrained,data,params_id,project,name
 UW_YOLOv8_RUOD_sgd300_1gpu,configs/models/uw_yolov8.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_sgd300_1gpu,outputs/training,ruod_0873_sgd300_1gpu
 AquaYOLO_UATD_sgd300_1gpu,configs/models/aquayolo.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_sgd,outputs/training,uatd_train
 yolov8m_RUOD_sgd300_1gpu,yolov8m.pt,,../data-processing/vision/RUOD/ruod.yaml,ruod_64_batch,outputs/training,yolov8m_ruod
-
+AGW_YOLOv8m_RUOD_sgd300_1gpu,configs/models/agw_yolov8.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_64_batch,outputs/training,AGW_YOLOv8s_RUOD
