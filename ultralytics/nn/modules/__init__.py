@@ -60,6 +60,21 @@ from .block import (
     SCDown,
     TorchVision,
 )
+
+from .custom_blocks import (
+ PConv,
+    FasterBlock,
+    GSConv,
+    LC2f,
+    AquaResidualBlock, 
+    FAU, 
+    CAFS, 
+    DSAM,
+    AGW_CBAM, 
+    AGW_GSConv, 
+    SEC2f
+)
+
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -187,4 +202,13 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+    "FasterBlock",
+    "GSConv",
+    "LC2f",
+    "PConv",
+    "AquaResidualBlock", 
+    "FAU", 
+    "CAFS", 
+    "DSAM",
+    "AGW_GSConv"
 )
