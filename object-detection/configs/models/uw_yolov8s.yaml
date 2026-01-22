@@ -5,44 +5,35 @@ nc: 10
 backbone:
   # --- Stem / Merging 0 ---
   # Conv2d(4, 64, 4) + BN → output h/4 × w/4
-  - [-1, 1, Conv, [64, 3, 2]]     # 0: 640 -> 320
-  - [-1, 1, Conv, [128, 3, 2]]    # 1: 320 -> 160 (P2/4)
-
-  # --- Stage 1 (h/4, w/4, c=128) ---
-  # PConv(3, 64, 1, 1/4) + Conv1x1(64→128) + BN + GELU + Conv1x1(128→64)
+  - [-1, 1, Conv, [32, 3, 2]]     # 0: 640 -> 320
+  - [-1, 1, Conv, [64, 3, 2]]    # 1: 320 -> 160 (P2/4)
   - [-1, 1, FasterBlock, []]      # 2: 1× block
 
   # --- Merging 1 ---
   # Conv2d(2, 128, 2) + BN → output h/8 × w/8
-  - [-1, 1, Conv, [256, 3, 2]]    # 3: 160 -> 80 (P3/8)
-
-  # --- Stage 2 (h/8, w/8, c=256) ---
+  - [-1, 1, Conv, [128, 3, 2]]    # 3: 160 -> 80 (P3/8)
   - [-1, 2, FasterBlock, []]      # 4: 2× blocks
 
   # --- Merging 2 ---
   # Conv2d(2, 256, 2) + BN → output h/16 × w/16
-  - [-1, 1, Conv, [512, 3, 2]]    # 5: 80 -> 40 (P4/16)
-
-  # --- Stage 3 (h/16, w/16, c=512) ---
-  - [-1, 8, FasterBlock, []]      # 6: 8× blocks
+  - [-1, 1, Conv, [256, 3, 2]]    # 5: 80 -> 40 (P4/16)
+  - [-1, 2, FasterBlock, []]      # 6: 8× blocks
 
   # --- Merging 3 ---
-  # Conv2d(2, 512, 2) + BN → output h/32 × w/32
-  - [-1, 1, Conv, [1024, 3, 2]]   # 7: 40 -> 20 (P5/32)
 
-  # --- Stage 4 (h/32, w/32, c=1024) ---
-  - [-1, 2, FasterBlock, []]      # 8: 2× blocks
+  - [-1, 1, Conv, [512, 3, 2]]   # 7: 40 -> 20 (P5/32)
+  - [-1, 1, FasterBlock, []]      # 8: 2× blocks
 
   # --- Context Module ---
   # Spatial Pyramid Pooling-Fast (SPPF)
-  - [-1, 1, SPPF, [1024, 5]]      # 9: output 20×20×1024
+  - [-1, 1, SPPF, [512, 5]]      # 9: output 20×20×1024
 
 
 head:
   # Project P3/P4/P5 to 256 (from backbone idx: 4, 6, 9)
-  - [4,  1, Conv, [256, 1, 1]]                 # 10: P3 -> 256
+  - [4,  1, Conv, [128, 1, 1]]                 # 10: P3 -> 256
   - [6,  1, Conv, [256, 1, 1]]                 # 11: P4 -> 256
-  - [9,  1, Conv, [256, 1, 1]]                 # 12: P5 -> 256 (SPPF out)
+  - [9,  1, Conv, [512, 1, 1]]                 # 12: P5 -> 256 (SPPF out)
 
   # Top-down path
   - [12, 1, nn.Upsample, [None, 2, nearest]]   # 13: P5->P4 size
@@ -51,7 +42,7 @@ head:
 
   - [15, 1, nn.Upsample, [None, 2, nearest]]   # 16: -> P3 size
   - [[16, 10], 1, Concat, [1]]                 # 17: fuse (P4out)↑ + P3
-  - [-1, 1, LC2f, [256, 2, True]]              # 18  ← final P3 head feature
+  - [-1, 1, LC2f, [128, 2, True]]              # 18  ← final P3 head feature
 
   # Bottom-up strengthen
   - [18, 1, Conv, [256, 3, 2]]                 # 19: P3→P4
@@ -60,7 +51,7 @@ head:
 
   - [21, 1, Conv, [256, 3, 2]]                 # 22: P4→P5
   - [[22, 12], 1, Concat, [1]]                 # 23
-  - [-1, 1, LC2f, [256, 2, True]]              # 24  ← final P5 head feature
+  - [-1, 1, LC2f, [512, 2, True]]              # 24  ← final P5 head feature
 
   # Detect heads (P3, P4, P5)
   - [[18, 21, 24], 1, Detect, [nc]]            # 25
