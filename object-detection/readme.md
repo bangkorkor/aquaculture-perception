@@ -32,6 +32,11 @@ I have added custom blocks to match the architecture as pruposed in the paper. F
 - Files that is modified: [block.py](../../ultralytics/ultralytics/nn/modules/block.py), [tasks.py](../../ultralytics/ultralytics/nn/tasks.py) (added imports and updated parse_model() for special arguments), [__init__.py](../../ultralytics/ultralytics/nn/modules/__init__.py) (exposing the modules).
 
 
+# If it cant find utralytics
+Change this to fix the paths???
+
+- source /cluster/home/henrban/aquaculture-perception/.venv/bin/activate
+- export PYTHONPATH=/cluster/home/henrban/aquaculture-perception:$PYTHONPATH
 
 
 
