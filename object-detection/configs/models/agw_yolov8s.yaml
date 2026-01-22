@@ -1,0 +1,44 @@
+# AGW-YOLOv8m MANUALLY SCALED (depth=0.67, width=0.75, max_channels=768)
+# Backbone: CBAM after SPPF
+# Head: SE-C2f + GSConv with same wiring
+
+nc: 10
+
+backbone:
+  - [-1, 1, Conv, [32, 3, 2]]          # 0  P1/2   (64 -> 48)
+  - [-1, 1, Conv, [64, 3, 2]]          # 1  P2/4   (128 -> 96)
+  - [-1, 1, C2f,  [64, True]]          # 2         (3 -> 2 repeats)
+
+  - [-1, 1, Conv, [128, 3, 2]]         # 3  P3/8   (256 -> 192)
+  - [-1, 2, C2f,  [128, True]]         # 4  (P3)   (6 -> 4 repeats)
+
+  - [-1, 1, Conv, [256, 3, 2]]         # 5  P4/16  (512 -> 384)
+  - [-1, 2, C2f,  [256, True]]         # 6  (P4)   (6 -> 4 repeats)
+
+  - [-1, 1, Conv, [512, 3, 2]]         # 7  P5/32  (1024 -> 768)
+  - [-1, 1, C2f,  [512, True]]         # 8         (3 -> 2 repeats)
+
+  - [-1, 1, SPPF, [512, 5]]            # 9
+  - [-1, 1, AGW_CBAM, [512]]           # 10
+
+head:
+  # ---------- Top-down (FPN) ----------
+  - [10, 1, nn.Upsample, [None, 2, nearest]]    # 11
+  - [[11, 6], 1, Concat, [1]]                   # 12  (768 + 384 = 1152)
+  - [-1, 1, SEC2f, [256, 2, True]]              # 13
+
+  - [13, 1, nn.Upsample, [None, 2, nearest]]    # 14
+  - [[14, 4], 1, Concat, [1]]                   # 15  (384 + 192 = 576)
+  - [-1, 1, SEC2f, [128, 2, True]]              # 16
+
+  # ---------- Bottom-up (PAN) ----------
+  - [16, 1, AGW_GSConv, [192, 3, 2]]            # 17  (192 -> 192)
+  - [[17, 13], 1, Concat, [1]]                  # 18  (192 + 384 = 576)
+  - [-1, 1, SEC2f, [256, 2, True]]              # 19
+
+  - [19, 1, AGW_GSConv, [384, 3, 2]]            # 20  (384 -> 384)
+  - [[20, 10], 1, Concat, [1]]                  # 21  (384 + 768 = 1152)
+  - [-1, 1, SEC2f, [512, 2, True]]              # 22
+
+  # ---------- Detect ----------
+  - [[16, 19, 22], 1, Detect, [nc]]
