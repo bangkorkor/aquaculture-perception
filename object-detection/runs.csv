@@ -1,6 +1,6 @@
 id,model,pretrained,data,params_id,project,name
 yolov8m_RUOD_120e,yolov8m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,yolov8m_ruod
-UW_YOLOv8_RUOD_120e,configs/models/uw_yolov8.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,uw-yolov8_ruod_120e
+UW_YOLOv8_RUOD_120e,configs/models/uw_yolov8.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch32,outputs/training,uw-yolov8_ruod_120e
 AGW_YOLOv8m_RUOD_sgd300_1gpu,configs/models/agw_yolov8.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,agw-yolov8m_ruod_120e
 
 AquaYOLO_UATD_sgd300_1gpu,configs/models/aquayolo.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_sgd,outputs/training,uatd_train
