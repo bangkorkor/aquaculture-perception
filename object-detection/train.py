@@ -53,7 +53,7 @@ def main():
         })
         return
 
-    model = YOLO(str(model_cfg))
+    model = YOLO(str(model_cfg),  task="detect")
     if pretrained:
         model = model.load(str(pretrained))
 
