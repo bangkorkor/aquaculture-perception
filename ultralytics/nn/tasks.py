@@ -83,6 +83,7 @@ from ultralytics.nn.modules import (
     AGW_CBAM,
     AGW_GSConv,
     SEC2f,
+    MSDA, C2PSA_MSDA, ASFFHead,ASFF
 
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
@@ -1595,6 +1596,7 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             A2C2f,
             AGW_GSConv, SEC2f, AGW_CBAM,
+            C2PSA_MSDA,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1614,6 +1616,7 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             C2PSA,
             A2C2f,
+            C2PSA_MSDA,
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
@@ -1738,6 +1741,7 @@ def parse_model(d, ch, verbose=True):
                 Pose26,
                 OBB,
                 OBB26,
+                ASFFHead
             }
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
@@ -1888,7 +1892,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
+            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect, ASFFHead)):
                 return "detect"
 
     # Guess from model filename

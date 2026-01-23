@@ -72,7 +72,8 @@ from .custom_blocks import (
     DSAM,
     AGW_CBAM, 
     AGW_GSConv, 
-    SEC2f
+    SEC2f,
+    MSDA, C2PSA_MSDA, ASFFHead, ASFF
 )
 
 from .conv import (

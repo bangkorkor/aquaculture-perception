@@ -624,6 +624,199 @@ class SEC2f(nn.Module):
 
 
 
+#------------
+# MAS-yolov11
+#------------
+
+import math
+from typing import Sequence, Tuple, List
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from ultralytics.nn.modules.conv import Conv
+from ultralytics.nn.modules.block import C2PSA
+from ultralytics.nn.modules.head import Detect
+
+
+class MSDA(nn.Module):
+    """
+    Multi-Scale Dilated Attention (MSDA) via sliding-window attention with different dilation rates.
+
+    Uses per-head local attention computed with unfold (3x3) at dilation r.
+    Effective receptive fields become 3,5,7,9 for r=1,2,3,4. :contentReference[oaicite:1]{index=1}
+    """
+
+    def __init__(
+        self,
+        c: int,
+        heads: int = 4,
+        dilation_rates: Sequence[int] = (1, 2, 3, 4),
+    ):
+        super().__init__()
+        assert c % heads == 0, f"MSDA: channels {c} must be divisible by heads {heads}"
+        self.c = c
+        self.heads = heads
+        self.d = c // heads
+
+        # if user passes fewer/more rates than heads, cycle deterministically
+        rates = list(dilation_rates)
+        if len(rates) != heads:
+            rates = [rates[i % len(rates)] for i in range(heads)]
+        self.rates = rates
+
+        self.qkv = nn.Conv2d(c, 3 * c, kernel_size=1, stride=1, padding=0, bias=False)
+        self.proj = nn.Conv2d(c, c, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn = nn.BatchNorm2d(c)
+        self.act = nn.SiLU()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        b, c, h, w = x.shape
+        qkv = self.qkv(x)
+        q, k, v = qkv.chunk(3, dim=1)
+
+        # [B, heads, d, H, W]
+        q = q.view(b, self.heads, self.d, h, w)
+        k = k.view(b, self.heads, self.d, h, w)
+        v = v.view(b, self.heads, self.d, h, w)
+
+        outs: List[torch.Tensor] = []
+        hw = h * w
+
+        for hi, rate in enumerate(self.rates):
+            qh = q[:, hi].reshape(b, self.d, hw)            # [B, d, HW]
+            kh = k[:, hi]                                   # [B, d, H, W]
+            vh = v[:, hi]                                   # [B, d, H, W]
+
+            # Unfold local neighborhoods (3x3) with dilation=rate, padding=rate → HW locations
+            k_unf = F.unfold(kh, kernel_size=3, dilation=rate, padding=rate, stride=1)  # [B, d*9, HW]
+            v_unf = F.unfold(vh, kernel_size=3, dilation=rate, padding=rate, stride=1)  # [B, d*9, HW]
+
+            k_unf = k_unf.view(b, self.d, 9, hw)  # [B, d, 9, HW]
+            v_unf = v_unf.view(b, self.d, 9, hw)
+
+            # attention scores: dot(q, k_patch) over channel dim d → [B, 9, HW]
+            scores = (qh.unsqueeze(2) * k_unf).sum(dim=1)  # [B, 9, HW]
+            attn = scores.softmax(dim=1)
+
+            # weighted sum of v patches → [B, d, HW]
+            out = (v_unf * attn.unsqueeze(1)).sum(dim=2)   # [B, d, HW]
+            outs.append(out.view(b, self.d, h, w))
+
+        y = torch.cat(outs, dim=1)          # [B, C, H, W]
+        y = self.proj(y)
+        y = self.act(self.bn(y))
+        return x + y
+
+
+class C2PSA_MSDA(nn.Module):
+    """
+    C2PSA_MSDA = YOLOv11's C2PSA + MSDA refinement.
+    The paper’s intent is embedding MSDA into C2PSA’s attention path; this wrapper is a clean
+    drop-in that preserves Ultralytics wiring while adding MSDA. 
+    """
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        heads: int = 4,
+        dilation_rates: Sequence[int] = (1, 2, 3, 4),
+    ):
+        super().__init__()
+        self.base = C2PSA(c1, c2)
+        self.msda = MSDA(c2, heads=heads, dilation_rates=dilation_rates)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.msda(self.base(x))
+
+
+class ASFF(nn.Module):
+    """
+    Adaptive Spatial Feature Fusion for one output level l.
+    F_l(i,j) = a*x0->l + b*x1->l + g*x2->l with softmax weights from 1x1 convs. 
+    """
+
+    def __init__(self, ch: Sequence[int], level: int):
+        super().__init__()
+        assert len(ch) == 3, "ASFF expects 3 feature levels (P3,P4,P5)"
+        assert level in (0, 1, 2)
+        self.level = level
+        self.inter = ch[level]
+
+        # Build rescale paths into 'inter' channels + correct spatial size for this level
+        self.p = nn.ModuleList([self._make_path(i, ch[i]) for i in range(3)])
+
+        # Control parameters λ via 1x1 conv → softmax over {0,1,2} 
+        self.w = nn.ModuleList([nn.Conv2d(self.inter, 1, 1) for _ in range(3)])
+
+    def _make_path(self, src_level: int, in_ch: int) -> nn.Module:
+        # target spatial scale by level:
+        # level 0 ~ P3 (largest), level 1 ~ P4, level 2 ~ P5 (smallest)
+        if self.level == 0:
+            if src_level == 0:   # P3 -> P3
+                return Conv(in_ch, self.inter, 1, 1)
+            if src_level == 1:   # P4 -> up2
+                return nn.Sequential(Conv(in_ch, self.inter, 1, 1), nn.Upsample(scale_factor=2, mode="nearest"))
+            # P5 -> up4
+            return nn.Sequential(Conv(in_ch, self.inter, 1, 1), nn.Upsample(scale_factor=4, mode="nearest"))
+
+        if self.level == 1:
+            if src_level == 0:   # P3 -> down2
+                return Conv(in_ch, self.inter, 3, 2)
+            if src_level == 1:   # P4 -> P4
+                return Conv(in_ch, self.inter, 1, 1)
+            # P5 -> up2
+            return nn.Sequential(Conv(in_ch, self.inter, 1, 1), nn.Upsample(scale_factor=2, mode="nearest"))
+
+        # self.level == 2
+        if src_level == 2:       # P5 -> P5
+            return Conv(in_ch, self.inter, 1, 1)
+        if src_level == 1:       # P4 -> down2
+            return Conv(in_ch, self.inter, 3, 2)
+        # P3 -> down4 (two downsamples)
+        return nn.Sequential(
+            Conv(in_ch, self.inter, 3, 2),
+            Conv(self.inter, self.inter, 3, 2),
+        )
+
+    def forward(self, x: List[torch.Tensor]) -> torch.Tensor:
+        x0 = self.p[0](x[0])
+        x1 = self.p[1](x[1])
+        x2 = self.p[2](x[2])
+
+        w0 = self.w[0](x0)
+        w1 = self.w[1](x1)
+        w2 = self.w[2](x2)
+        ws = torch.softmax(torch.cat([w0, w1, w2], dim=1), dim=1)  # [B,3,H,W]
+
+        return ws[:, 0:1] * x0 + ws[:, 1:2] * x1 + ws[:, 2:3] * x2
+
+
+class ASFFHead(Detect):
+    """
+    Must match parse_model() call:
+      ASFFHead(nc, reg_max, end2end, ch_list)
+    """
+
+    def __init__(self, nc=80, reg_max=16, end2end=False, ch=()):
+        super().__init__(nc, reg_max, end2end, ch)  # IMPORTANT: positional to match your Detect
+
+        assert len(ch) == 3, f"ASFFHead expects 3 feature maps (P3,P4,P5). Got ch={ch}"
+        ch = list(ch)
+
+        self.asff0 = ASFF(ch, level=0)
+        self.asff1 = ASFF(ch, level=1)
+        self.asff2 = ASFF(ch, level=2)
+
+    def forward(self, x):
+        # x is [p3, p4, p5]
+        x = [self.asff0(x), self.asff1(x), self.asff2(x)]
+        return super().forward(x)
+
+
+
 
 
 
