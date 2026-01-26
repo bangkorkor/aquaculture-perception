@@ -6,10 +6,10 @@ yolov8m_RUOD_120e,yolov8m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml
 UW_YOLOv8s_RUOD_120e,configs/models/uw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,uw-yolov8s_ruod_120e
 UW_YOLOv8m_RUOD_120e,configs/models/uw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,uw-yolov8m_ruod_120e
 
-AGW_YOLOv8s_RUOD_sgd300_1gpu,configs/models/agw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,agw-yolov8s_ruod_120e
-AGW_YOLOv8m_RUOD_sgd300_1gpu,configs/models/agw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,agw-yolov8m_ruod_120e
+AGW_YOLOv8s_RUOD_120e,configs/models/agw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,agw-yolov8s_ruod_120e
+AGW_YOLOv8m_RUOD_120e,configs/models/agw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,agw-yolov8m_ruod_120e
 
-MAS_YOLOv11n_RUOD_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,mas-yolov11n_ruod_120e
+MAS_YOLOv11n_RUOD_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch128_4work,outputs/training,mas-yolov11n_ruod_120e
 MAS_YOLOv11s_RUOD_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,mas-yolov11s_ruod_120e
 
 
