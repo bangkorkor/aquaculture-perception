@@ -16,6 +16,7 @@
         "deterministic": false 
       },
 
+
       "ruod_120e_batch32": {
         "epochs": 120,
         "imgsz": 640,
@@ -31,6 +32,24 @@
         "pretrained" : true,
         "deterministic": false 
       },
+
+      "ruod_120e_batch128_4work": {
+        "epochs": 120,
+        "imgsz": 640,
+        "batch": 128,
+        "optimizer": "SGD",
+        "lr0": 0.01,
+        "momentum": 0.937,
+        "weight_decay": 0.0005,
+        "amp": false,
+        "device": [0],
+        "workers": 4,
+        "seed": 0,
+        "pretrained" : true,
+        "deterministic": false 
+      },
+
+      
 
 
       "ruod_sgd300_1gpu": {
