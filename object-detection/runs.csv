@@ -21,6 +21,9 @@ MAS_YOLOv11n_RUOD_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-proce
 MAS_YOLOv11s_RUOD_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training,mas-yolov11s_ruod_120e
 
 
+MAC_test,configs/models/uw-yolov8_better.yaml,yolov8s.pt,../data-processing/vision/RUOD/ruod.yaml,mac_run_safe,outputs/training,mac_run_safe
+
+
 
 
 
