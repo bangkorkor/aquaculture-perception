@@ -1,0 +1,62 @@
+nc: 10
+
+
+backbone:
+  # Merging (640 -> 160): Conv+BN (no act)
+  - [-1, 1, UWConvBN, [64, 4, 4, 0]]  #0
+
+  # Stage 1
+  - [-1, 1, FasterBlock, []]      #1
+
+  # Merging (160 -> 80): Conv+BN (no act)
+  - [-1, 1, UWConvBN, [128, 2, 2, 0]]  #2
+
+  # Stage 2
+  - [-1, 2, FasterBlock, []]   #3
+
+  # Merging (80 -> 40): Conv+BN (no act)
+  - [-1, 1, UWConvBN, [256, 2, 2, 0]] #4
+
+  # Stage 3
+  - [-1, 8, FasterBlock, []]  #5
+
+  # Merging (40 -> 20): Conv+BN (no act)
+  - [-1, 1, UWConvBN, [512, 2, 2, 0]]   #6
+
+  # Stage 4
+  - [-1, 2, FasterBlock, []]  #7  
+
+  # SPPF 
+  - [-1, 1, SPPF, [512, 5]]  #8
+
+
+
+head:
+
+  # --- unify channels to 256 (Conv = Conv2d+BN+SiLU) ---
+  - [3, 1, Conv, [256, 1, 1]]              # 9:  P3 80x80  (128 -> 256) paper says to use Conv here that uses BN ans SiLU
+  - [5, 1, Conv, [256, 1, 1]]              # 10: P4 40x40  (256 -> 256)
+  - [8, 1, Conv, [256, 1, 1]]              # 11: P5 20x20  (512 -> 256)
+
+  # --- top-down ---
+  - [11, 1, nn.Upsample, [None, 2, "nearest"]]  # 12: P5 -> 40x40
+  - [[12, 10], 1, Concat, [1]]                  # 13: concat(P5up, P4)
+  - [-1, 1, LC2f, [256, 1, True]]               # 14: P4_td (40x40, 256)            # could maybe set these to false too? # also try to /2 on all outputs from here on
+
+  - [14, 1, nn.Upsample, [None, 2, "nearest"]]  # 15: -> 80x80
+  - [[15, 9], 1, Concat, [1]]                   # 16: concat(P4td_up, P3)
+  - [-1, 1, LC2f, [128, 1, True]]               # 17: P3_out (80x80, 256)
+
+  # --- bottom-up ---
+  - [17, 1, Conv, [128, 3, 2]]                  # 18: downsample to 40x40
+  - [[18, 14, 10], 1, Concat, [1]]              # 19: concat(P3down, P4td)
+  - [-1, 1, LC2f, [256, 1, True]]               # 20: P4_out (40x40, 256)
+
+  - [20, 1, Conv, [256, 3, 2]]                  # 21: downsample to 20x20
+  - [[21, 11], 1, Concat, [1]]                  # 22: concat(P4down, P5)
+  - [-1, 1, LC2f, [512, 1, True]]               # 23: P5_out (20x20, 256)
+
+  # --- detect (YOLOv8 head) ---
+  - [[17, 20, 23], 1, Detect, [nc]]             # 24
+
+
