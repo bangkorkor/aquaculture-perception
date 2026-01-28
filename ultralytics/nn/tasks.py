@@ -73,6 +73,7 @@ from ultralytics.nn.modules import (
     YOLOESegment26,
     v10Detect,
     FasterBlock,
+    UWConvBN,
     GSConv,
     LC2f,
     PConv,
@@ -1597,6 +1598,7 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
             AGW_GSConv, SEC2f, AGW_CBAM,
             C2PSA_MSDA,
+            UWConvBN,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

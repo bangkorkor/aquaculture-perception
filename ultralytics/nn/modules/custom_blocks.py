@@ -11,6 +11,8 @@ from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
 
+
+
 class UWYOLO_ConvBNAct(nn.Module):
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act='SiLU', bias=False):
         super().__init__()
@@ -28,60 +30,64 @@ class UWYOLO_ConvBNAct(nn.Module):
 
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
+    
+class UWConvBN(nn.Module):
+    """Conv + BN (no activation). Ultralytics-YAML friendly."""
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, bias=False):
+        super().__init__()
+        self.m = UWYOLO_ConvBNAct(c1, c2, k=k, s=s, p=p, g=g, act=None, bias=bias)
+
+    def forward(self, x):
+        return self.m(x)
+    
+class UWConv(nn.Module):
+    """Conv only (no BN, no activation)."""
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, bias=True):
+        super().__init__()
+        p = k // 2 if p is None else p
+        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=bias)
+
+    def forward(self, x):
+        return self.conv(x)
+    
 
 
 class PConv(nn.Module):
-    """
-    Partial Convolution (PConv): apply spatial conv on a fraction r of channels,
-    pass the remaining (1-r) channels unchanged, then concatenate.
+    # partial convolutional block (PConv) per UW-YOLOv8. Uses UWConv (conv only, no BN, no act)
 
-    Args:
-        c (int): in/out channels
-        k (int): kernel size (paper uses 3)
-        s (int): stride (paper uses 1 inside Faster block)
-        r (float): partial ratio (paper uses 1/4)
-    """
     def __init__(self, c: int, k: int = 3, s: int = 1, r: float = 0.25):
         super().__init__()
-        assert 0.0 < r <= 1.0
-        self.c = c
-        self.cp = max(1, int(round(c * r)))  # number of channels to convolve
-        self.uc = c - self.cp                 # unchanged channels
-        self.s = s
-        self.k = k
-        # Only convolve the first cp channels
-        self.conv = UWYOLO_ConvBNAct(self.cp, self.cp, k=k, s=s, act='SiLU')
+        assert s == 1, "FasterNet PConv should use stride=1"
+        self.cp = max(1, int(round(c * r)))
+        # self.cp = c // 4 # original UW-YOLOv8 uses fixed 1/4, is this better?
+        self.uc = c - self.cp
+        self.conv = UWConv(self.cp, self.cp, k=k, s=1, bias=True)  # conv only
 
     def forward(self, x):
         x1, x2 = torch.split(x, [self.cp, self.uc], dim=1)
         y1 = self.conv(x1)
-        # stride > 1 is not used in the paper's block, but handle gracefully
-        if self.s > 1 and y1.shape[-2:] != x2.shape[-2:]:
-            x2 = F.avg_pool2d(x2, kernel_size=self.s, stride=self.s)
         return torch.cat([y1, x2], dim=1)
+    
+
 
 
 class FasterBlock(nn.Module):
-    """
-    FasterNet block with same in/out channels.
-    Accepts (c1, c2=None, r=0.25) to be YAML/Ultralytics-friendly.
-    """
     def __init__(self, c1: int, c2: int = None, r: float = 0.25):
         super().__init__()
         c = c1 if c2 is None else c2
-        assert c == c1, "FasterBlock expects c2==c1 (same in/out channels)."
+        assert c == c1
         self.pconv = PConv(c, k=3, s=1, r=r)
-        self.expand = UWYOLO_ConvBNAct(c, 2 * c, k=1, s=1, act='RELU')
-        self.project = UWYOLO_ConvBNAct(2 * c, c, k=1, s=1, act=None)
+        self.expand = UWYOLO_ConvBNAct(c, 2 * c, k=1, s=1, act='GELU')  # Conv+BN+GELU. FIG 2 uses Relu but text says GELU.
+        self.project = UWConv(2 * c, c, k=1, s=1, bias=True)            # Conv only
 
     def forward(self, x):
-        y = self.project(self.expand(self.pconv(x)))
-        return x + y
+        return x + self.project(self.expand(self.pconv(x)))
+
 
 
 
 class ChannelShuffle(nn.Module):
-    """Channel shuffle utility used by GSConv."""
+    """ShuffleNet-style channel shuffle."""
     def __init__(self, groups: int = 2):
         super().__init__()
         self.groups = groups
@@ -96,68 +102,56 @@ class ChannelShuffle(nn.Module):
 
 
 class GSConv(nn.Module):
-    """
-    GSConv: parallel SC and DSC branches on the same input, then concat + channel shuffle.
-    Matches the Slim-neck by GSConv description used by the paper’s LC2f.  (Fig. 5)
-    """
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
+    def __init__(self, c1, c2, k=5, s=1, act="SiLU"):
         super().__init__()
-        # ensure even out channels for clean 2-way shuffle
-        self.c2 = c2 if c2 % 2 == 0 else c2 + 1
-        mid = self.c2 // 2
+        assert c2 % 2 == 0
+        mid = c2 // 2
 
-        # SC branch (standard 1x1 conv)
-        self.sc = UWYOLO_ConvBNAct(c1, mid, k=1, s=1, act='SiLU')
+        # SC (typically 1x1)
+        self.cv1 = UWYOLO_ConvBNAct(c1, mid, k=1, s=s, act=act)
 
-        # DSC branch (depthwise kxk on x, then 1x1)
-        self.dw = UWYOLO_ConvBNAct(c1, c1, k=k, s=s, g=c1, act='SiLU')   # depthwise on input x
-        self.pw = UWYOLO_ConvBNAct(c1, mid, k=1, s=1, act='SiLU')        # pointwise
+        # DWConv only (no extra pointwise)
+        self.dw = UWYOLO_ConvBNAct(mid, mid, k=k, s=1, g=mid, act=act)
 
         self.shuffle = ChannelShuffle(groups=2)
 
-        # If caller asked for odd c2, trim back after shuffle
-        self.trim = (self.c2 != c2)
-
     def forward(self, x):
-        a = self.sc(x)          # SC(x)
-        b = self.pw(self.dw(x)) # DSC(x)
-        y = torch.cat([a, b], dim=1)  # (B, c2_even, H, W)
-        y = self.shuffle(y)
-        if self.trim:
-            y = y[:, : self.c2 - 1, ...]  # drop one channel to match requested c2
-        return y
+        y = self.cv1(x)          # mid
+        b = self.dw(y)           # mid
+        out = torch.cat([y, b], dim=1)  # c2
+        return self.shuffle(out)
+
 
 
 
 class LC2f(nn.Module):
     """
-    Lightweight-C2f: C2f-style split-and-merge where:
-      - the inner bottleneck is replaced by FasterBlock
-      - the final conv is replaced by GSConv
-    Args:
-        c1 (int): input channels
-        c2 (int): output channels
-        n (int): number of inner blocks
-        shortcut (bool): residual inside FasterBlock is internal; outer shortcut not required
-        r (float): PConv ratio for FasterBlock
+    LC2f per UW-YOLOv8:
+      - based on YOLOv8 C2f layout
+      - Bottleneck -> FasterBlock
+      - last Conv -> GSConv
+    Fig. 4: Conv -> Split -> (FasterNet Block)x n -> Concat -> GSConv
     """
-    def __init__(self, c1: int, c2: int, n: int = 2, shortcut: bool = True, r: float = 0.25):
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, r: float = 0.25):
         super().__init__()
-        c_hidden = c2 // 2
-        # stem expand to two branches like C2f
-        self.cv1 = UWYOLO_ConvBNAct(c1, c_hidden, k=1, s=1)
-        self.cv2 = UWYOLO_ConvBNAct(c1, c_hidden, k=1, s=1)
-        # stack FasterBlocks on the second branch
-        self.blocks = nn.Sequential(*[FasterBlock(c_hidden, r=r) for _ in range(n)])
-        # concatenate [branch1, branch2] -> GSConv to c2
-        self.fuse = GSConv(2 * c_hidden, c2, k=3, s=1)
+        # match Ultralytics C2f hidden channel rule
+        c = c2 // 2
+
+        # stem conv then split
+        self.cv1 = UWYOLO_ConvBNAct(c1, 2 * c, k=1, s=1, act="SiLU")
+
+        # n FasterNet blocks operating on the second split
+        self.m = nn.ModuleList([FasterBlock(c, r=r) for _ in range(n)])
+
+        # concat of (2 + n) chunks -> GSConv to c2
+        self.cv2 = GSConv((2 + n) * c, c2, k=5, s=1, act="SiLU")
 
     def forward(self, x):
-        y1 = self.cv1(x)
-        y2 = self.cv2(x)
-        y2 = self.blocks(y2)
-        y = torch.cat([y1, y2], dim=1)
-        return self.fuse(y)
+        y = list(self.cv1(x).chunk(2, 1))  # [y1, y2]
+        for block in self.m:
+            y.append(block(y[-1]))
+        return self.cv2(torch.cat(y, 1))
+
     
 
 # ---------------------------------------------------------------------------

@@ -62,7 +62,8 @@ from .block import (
 )
 
 from .custom_blocks import (
- PConv,
+    PConv,
+    UWConvBN,
     FasterBlock,
     GSConv,
     LC2f,
@@ -73,7 +74,8 @@ from .custom_blocks import (
     AGW_CBAM, 
     AGW_GSConv, 
     SEC2f,
-    MSDA, C2PSA_MSDA, ASFFHead, ASFF
+    MSDA, C2PSA_MSDA, ASFFHead, ASFF,
+
 )
 
 from .conv import (
@@ -204,6 +206,7 @@ __all__ = (
     "YOLOESegment26",
     "v10Detect",
     "FasterBlock",
+    "UWConvBN",
     "GSConv",
     "LC2f",
     "PConv",
