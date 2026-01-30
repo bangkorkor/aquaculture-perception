@@ -87,69 +87,89 @@ class FasterBlock(nn.Module):
 
 
 class ChannelShuffle(nn.Module):
-    """ShuffleNet-style channel shuffle."""
+    """ShuffleNet-style channel shuffle (transpose-based, no FLOPs)."""
     def __init__(self, groups: int = 2):
         super().__init__()
         self.groups = groups
 
     def forward(self, x):
-        n, c, h, w = x.size()
+        b, c, h, w = x.size()
         g = self.groups
-        assert c % g == 0
-        x = x.view(n, g, c // g, h, w)
+        assert c % g == 0, f"channels ({c}) must be divisible by groups ({g})"
+        x = x.view(b, g, c // g, h, w)
         x = x.transpose(1, 2).contiguous()
-        return x.view(n, c, h, w)
+        return x.view(b, c, h, w)
 
 
 class GSConv(nn.Module):
-    def __init__(self, c1, c2, k=5, s=1, act="SiLU"):
+    """
+    GSConv: SC branch + DSC branch -> concat -> shuffle
+    Compatible with calls like GSConv(c1,c2,k=5,s=1)
+    """
+    def __init__(self, c1: int, c2: int, k: int = 5, s: int = 1, act: str = "SiLU", k_sc: int = 3):
         super().__init__()
-        assert c2 % 2 == 0
+        assert c2 % 2 == 0, "GSConv expects even c2."
         mid = c2 // 2
 
-        # SC (typically 1x1)
-        self.cv1 = UWYOLO_ConvBNAct(c1, mid, k=1, s=s, act=act)
+        # SC branch (standard conv)
+        self.sc = UWYOLO_ConvBNAct(c1, mid, k=k_sc, s=s, act=act)
 
-        # DWConv only (no extra pointwise)
-        self.dw = UWYOLO_ConvBNAct(mid, mid, k=k, s=1, g=mid, act=act)
+        # DSC branch (depthwise kxk then pointwise 1x1)
+        self.dw = UWYOLO_ConvBNAct(c1, c1, k=k, s=s, g=c1, act=act)   # depthwise
+        self.pw = UWYOLO_ConvBNAct(c1, mid, k=1, s=1, act=act)        # pointwise
 
         self.shuffle = ChannelShuffle(groups=2)
 
     def forward(self, x):
-        y = self.cv1(x)          # mid
-        b = self.dw(y)           # mid
-        out = torch.cat([y, b], dim=1)  # c2
-        return self.shuffle(out)
+        a = self.sc(x)
+        b = self.pw(self.dw(x))
+        return self.shuffle(torch.cat([a, b], dim=1))
+
 
 
 
 
 class LC2f(nn.Module):
     """
-    LC2f per UW-YOLOv8:
-      - based on YOLOv8 C2f layout
-      - Bottleneck -> FasterBlock
-      - last Conv -> GSConv
-    Fig. 4: Conv -> Split -> (FasterNet Block)x n -> Concat -> GSConv
+    LC2f: drop-in C2f variant
+      - same layout as Ultralytics C2f:
+          cv1 -> split -> (block)x n -> concat -> cv2
+      - replaces Bottleneck with FasterBlock
+      - replaces final Conv with GSConv
     """
-    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, r: float = 0.25):
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        shortcut: bool = False,   # kept for signature compatibility; not used
+        g: int = 1,               # kept for signature compatibility; not used
+        e: float = 0.5,
+        r: float = 0.25,          # FasterBlock partial ratio
+        gs_k: int = 3,            # GSConv depthwise kernel (paper might use 3/5)
+    ):
         super().__init__()
-        # match Ultralytics C2f hidden channel rule
-        c = c2 // 2
+        self.c = int(c2 * e)  # EXACTLY like C2f
 
-        # stem conv then split
-        self.cv1 = UWYOLO_ConvBNAct(c1, 2 * c, k=1, s=1, act="SiLU")
+        # stem conv then split into 2 chunks of size self.c
+        self.cv1 = Conv(c1, 2 * self.c, k=1, s=1)
 
-        # n FasterNet blocks operating on the second split
-        self.m = nn.ModuleList([FasterBlock(c, r=r) for _ in range(n)])
+        # n FasterBlocks operating sequentially on the "second" branch output
+        self.m = nn.ModuleList(FasterBlock(self.c, r=r) for _ in range(n))
 
-        # concat of (2 + n) chunks -> GSConv to c2
-        self.cv2 = GSConv((2 + n) * c, c2, k=5, s=1, act="SiLU")
+        # concat of (2 + n) chunks -> GSConv to c2 (replaces C2f.cv2 Conv)
+        self.cv2 = GSConv((2 + n) * self.c, c2, k=gs_k, s=1)
 
-    def forward(self, x):
-        y = list(self.cv1(x).chunk(2, 1))  # [y1, y2]
-        for block in self.m:
-            y.append(block(y[-1]))
+        # Keep these just so the constructor matches typical C2f YAML patterns
+        self.n = n
+        self.shortcut = shortcut
+        self.g = g
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))     # [y0, y1], each (B, self.c, H, W)
+        for m in self.m:
+            y.append(m(y[-1]))                # append each intermediate output (C2f style)
         return self.cv2(torch.cat(y, 1))
 
 
