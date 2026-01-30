@@ -72,15 +72,26 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
+    
+    # UW-YOLOv8
     FasterBlock,
     UWConvBN,
     GSConv,
     LC2f,
     PConv,
+
+    # UODN
+    CSMBBackBone1,
+    CSMBBackBone2,
+    CSMBNeck1,
+    DWConvModule,
+    LKSP,
+
     AquaResidualBlock, 
     FAU, 
     CAFS, 
     DSAM,
+
     AGW_CBAM,
     AGW_GSConv,
     SEC2f,
@@ -1598,7 +1609,17 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
             AGW_GSConv, SEC2f, AGW_CBAM,
             C2PSA_MSDA,
+            
+            # UW-YOLOv8
             UWConvBN,
+
+            # UODN
+            CSMBBackBone1,
+            CSMBBackBone2,
+            CSMBNeck1,
+            LKSP,
+
+           
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

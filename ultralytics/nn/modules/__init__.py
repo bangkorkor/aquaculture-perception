@@ -62,15 +62,26 @@ from .block import (
 )
 
 from .custom_blocks import (
+    # UW-YOLOv8
     PConv,
     UWConvBN,
     FasterBlock,
     GSConv,
     LC2f,
+
+    #UODN
+    CSMBBackBone1,
+    CSMBBackBone2,
+    CSMBNeck1,
+    DWConvModule,
+    LKSP,
+
+
     AquaResidualBlock, 
     FAU, 
     CAFS, 
     DSAM,
+
     AGW_CBAM, 
     AGW_GSConv, 
     SEC2f,
@@ -205,11 +216,22 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+
+    # UW-YOLOv8
     "FasterBlock",
     "UWConvBN",
     "GSConv",
     "LC2f",
     "PConv",
+
+    # UODN
+    "CSMBBackBone1",
+    "CSMBBackBone2",
+    "CSMBNeck1",
+    "DWConvModule",
+    "LKSP",
+
+
     "AquaResidualBlock", 
     "FAU", 
     "CAFS", 
