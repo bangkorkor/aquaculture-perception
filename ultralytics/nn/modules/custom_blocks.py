@@ -152,7 +152,331 @@ class LC2f(nn.Module):
             y.append(block(y[-1]))
         return self.cv2(torch.cat(y, 1))
 
+
+
+# ---------------------------------------------------------------------------
+# UODN custom blocks 
+# ---------------------------------------------------------------------------
+
+class CSMBBackBone1(nn.Module):
+    def __init__(self, c1: int, c2: int):
+        super().__init__()
+        assert c2 % 2 == 0
+        c_ = c2 // 2
+
+        # common 1x1 (keep spatial size)
+        self.common = Conv(c1, c2, k=1, s=1, p=0)
+
+        # branches: c2 -> c_
+        self.l = Conv(c2, c_, k=3, s=1, p=1)
+        self.r = Conv(c2, c_, k=3, s=1, p=1)
+        self.m = Conv(c2, c_, k=3, s=1, p=1)
+
+        # DB on mid: c_ -> c_ -> c_ with residual add
+        self.db1 = Conv(c_, c_, k=3, s=1, p=1)
+        self.db2 = Conv(c_, c_, k=3, s=1, p=1)
+
+        # concat 3 maps => 3*c_
+        self.out = Conv(3 * c_, c2, k=1, s=1, p=0)
+
+    def forward(self, x):
+        x = self.common(x)
+        l_out = self.l(x)
+        r_out = self.r(x)
+        m_out = self.m(x)
+
+        db_out = m_out + self.db2(self.db1(m_out))
+
+        return self.out(torch.cat([l_out, db_out, r_out], dim=1))
+
+class CSMBBackBone2(nn.Module):
+    def __init__(self, c1: int, c2: int):
+        super().__init__()
+        assert c2 % 2 == 0, "CSMB uses hidden width c2//2; requires even c2."
+        c_ = c2 // 2
+
+        self.common = Conv(c1, c2, k=1, s=1, p=0)  # common 1x1
+
+        # branches: must take c2 in, produce c_ out
+        self.l = Conv(c2, c_, k=3, s=1, p=1)
+        self.r = Conv(c2, c_, k=3, s=1, p=1)
+        self.m = Conv(c2, c_, k=3, s=1, p=1)
+
+        # DB1: residual bottleneck on c_
+        self.db11 = Conv(c_, c_, k=3, s=1, p=1)
+        self.db12 = Conv(c_, c_, k=3, s=1, p=1)
+
+        # DB2: residual bottleneck on c_
+        self.db21 = Conv(c_, c_, k=3, s=1, p=1)
+        self.db22 = Conv(c_, c_, k=3, s=1, p=1)
+
+        # concat 4 maps => 4*c_
+        self.out = Conv(4 * c_, c2, k=1, s=1, p=0)
+
+    def forward(self, x):
+        x = self.common(x)   # (B, c2, H, W)
+
+        l_out = self.l(x)    # (B, c_, H, W)
+        r_out = self.r(x)    # (B, c_, H, W)
+        m_out = self.m(x)    # (B, c_, H, W)
+
+        db1_out = m_out + self.db12(self.db11(m_out))         # (B, c_, H, W)
+        db2_out = db1_out + self.db22(self.db21(db1_out))     # (B, c_, H, W)
+
+        return self.out(torch.cat([l_out, r_out, db1_out, db2_out], dim=1))
+
+class CSMBNeck1(nn.Module):
+    def __init__(self, c1: int, c2: int):
+        super().__init__()
+        assert c2 % 2 == 0
+        c_ = c2 // 2
+
+        # common 1x1 (keep spatial size)
+        self.common = Conv(c1, c2, k=1, s=1, p=0)
+
+        # branches: c2 -> c_
+        self.l = Conv(c2, c_, k=3, s=1, p=1)
+        self.r = Conv(c2, c_, k=3, s=1, p=1)
+        self.m = Conv(c2, c_, k=3, s=1, p=1)
+
+        # DB on mid: c_ -> c_ -> c_ with residual add
+        self.db1 = Conv(c_, c_, k=3, s=1, p=1)
+        self.db2 = Conv(c_, c_, k=3, s=1, p=1)
+
+        # concat 3 maps => 3*c_
+        self.out = Conv(3 * c_, c2, k=1, s=1, p=0)
+
+    def forward(self, x):
+        x = self.common(x)
+        l_out = self.l(x)
+        r_out = self.r(x)
+        m_out = self.m(x)
+
+        db_out = self.db2(self.db1(m_out)) # no skip connection here
+
+        return self.out(torch.cat([l_out, db_out, r_out], dim=1))
     
+
+
+# OLD CODE I think this is wrong:
+
+# class CSMBBackBone1(nn.Module):
+#     """
+#     CSMB with n=1 DB, per Eq.(2)-(3).
+
+#     Two independent conv computations on F:
+#       A(F) = Conv3x3(Conv1x1(F))
+#       B0(F)= Conv3x3(Conv1x1(F))
+#     DB branch:
+#       B(F) = DB(B0(F))  (n=1)
+
+#     Concat three feature maps then 1x1:
+#       out = Conv1x1( Concat( A(F), B0(F), B(F) ) )
+#     """
+#     def __init__(self, c1: int, c2: int):
+#         super().__init__()
+#         assert c2 % 2 == 0, "CSMB uses hidden width c2//2; requires even c2."
+#         c_ = c2 // 2
+
+#         # A(F) = Conv3x3(Conv1x1(F))
+#         self.a1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.a2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         # B0(F)= Conv3x3(Conv1x1(F))
+#         self.b1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.b2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         # DB: Conv3x3 -> Conv3x3 + residual
+#         self.db1 = Conv(c_, c_, k=3, s=1, p=1)
+#         self.db2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         # Final 1x1 projection after concat (3 * c_ -> c2uja)
+#         self.out = Conv(3 * c_, c2, k=1, s=1, p=0)
+
+#     def forward(self, x):
+#         a = self.a2(self.a1(x))          # A(F)
+#         b0 = self.b2(self.b1(x))         # B0(F)
+
+#         b = b0 + self.db2(self.db1(b0))  # DB(b0), n=1
+
+#         return self.out(torch.cat([a, b0, b], dim=1))
+
+
+
+# class CSMBBackBone2(nn.Module):
+#     """
+#     CSMB with n=2 DB, per Eq.(2)-(3).
+
+#     Same as CSMBBackBone1, but DB is applied twice in series:
+#       b1 = DB(b0)
+#       b2 = DB(b1)
+#     and concat is still exactly three feature maps: [a, b0, b2]
+#     """
+#     def __init__(self, c1: int, c2: int):
+#         super().__init__()
+#         assert c2 % 2 == 0, "CSMB uses hidden width c2//2; requires even c2."
+#         c_ = c2 // 2
+
+#         # A(F)
+#         self.a1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.a2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         # B0(F)
+#         self.b1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.b2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         # DB #1
+#         self.db1_1 = Conv(c_, c_, k=3, s=1, p=1)
+#         self.db1_2 = Conv(c_, c_, k=3, s=1, p=1)
+#         # DB #2
+#         self.db2_1 = Conv(c_, c_, k=3, s=1, p=1)
+#         self.db2_2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         self.out = Conv(3 * c_, c2, k=1, s=1, p=0)
+
+#     def forward(self, x):
+#         a = self.a2(self.a1(x))      # A(F)
+#         b0 = self.b2(self.b1(x))     # B0(F)
+
+#         b1 = b0 + self.db1_2(self.db1_1(b0))  # DB #1
+#         b2 = b1 + self.db2_2(self.db2_1(b1))  # DB #2  (n=2 final)
+
+#         return self.out(torch.cat([a, b0, b2], dim=1))
+
+
+
+# class CSMBNeck1(nn.Module):
+#     """
+#     Same CSMB definition from Eq.(2)-(3), n=1.
+#     (Paper uses FPN+PAN in neck; if you still want CSMB in neck, this matches the same formula.)
+#     """
+#     def __init__(self, c1: int, c2: int):
+#         super().__init__()
+#         assert c2 % 2 == 0, "CSMB uses hidden width c2//2; requires even c2."
+#         c_ = c2 // 2
+
+#         self.a1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.a2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         self.b1 = Conv(c1, c_, k=1, s=1, p=0)
+#         self.b2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         self.db1 = Conv(c_, c_, k=3, s=1, p=1)
+#         self.db2 = Conv(c_, c_, k=3, s=1, p=1)
+
+#         self.out = Conv(3 * c_, c2, k=1, s=1, p=0)
+
+#     def forward(self, x):
+#         a = self.a2(self.a1(x))
+#         b0 = self.b2(self.b1(x))
+#         b = b0 + self.db2(self.db1(b0))
+#         return self.out(torch.cat([a, b0, b], dim=1))
+
+
+
+
+class DWConvModule(nn.Module):
+    """
+    Middle LKSP branch:
+      DWConv(1×K, dilation=K) -> DWConv(K×1, dilation=K) -> PWConv(1×1)
+    (Conv-only inside branch, no BN/act)
+    """
+    def __init__(self, c: int, k: int):
+        super().__init__()
+        d = k  # paper: dilation = K
+        p = (k - 1) * d // 2  # "same" pad for stride=1 with dilation
+
+        # 1×K depthwise (dilate along width)
+        self.dw1 = nn.Conv2d(
+            c, c, kernel_size=(1, k), stride=1,
+            padding=(0, p), dilation=(1, d),
+            groups=c, bias=True
+        )
+        # K×1 depthwise (dilate along height)
+        self.dw2 = nn.Conv2d(
+            c, c, kernel_size=(k, 1), stride=1,
+            padding=(p, 0), dilation=(d, 1),
+            groups=c, bias=True
+        )
+        # pointwise 1×1
+        self.pw = nn.Conv2d(c, c, kernel_size=1, stride=1, padding=0, bias=True)
+
+    def forward(self, x):
+        x = self.dw1(x)  # 1*K first
+        x = self.dw2(x)  # then K*1
+        return self.pw(x) # then normal pointwise conv
+
+
+class LKSP(nn.Module):
+    """
+    LKSP with common conv keeping c_out:
+
+    Common:
+      x -> common Conv1×1 (c1 -> c_out), Conv-only
+
+    Branch inputs:
+      - skip + 3 DW branches share: reduce Conv1×1 (c_out -> 0.5*c_out), Conv-only
+      - GAP branch uses common output: AAP -> Conv1×1 (to 0.5*c_out) -> ReLU -> Upsample
+
+    Concat 5 branches (each 0.5*c_out => 2.5*c_out) then OutputConv:
+      Conv -> BN -> ReLU -> Dropout
+    """
+    def __init__(self, c1: int, c2: int = None, drop: float = 0.1):
+        super().__init__()
+        c2 = c1 if c2 is None else c2
+        assert c2 % 2 == 0, "LKSP expects even c_out."
+        assert 0.0 <= drop <= 1.0, f"drop must be in [0,1], got {drop}"
+
+        mid = c2 // 2
+
+        # Common conv: Conv ONLY, keeps channels at c_out
+        self.common = nn.Conv2d(c1, c2, kernel_size=1, stride=1, padding=0, bias=True)
+
+        # Shared reduce for skip + DW branches: Conv ONLY to 0.5*c_out
+        self.reduce = nn.Conv2d(c2, mid, kernel_size=1, stride=1, padding=0, bias=True)
+
+        # Three DW branches on reduced feature
+        self.m4 = DWConvModule(mid, k=4)
+        self.m5 = DWConvModule(mid, k=5)
+        self.m6 = DWConvModule(mid, k=6)
+
+        # GAP branch on common feature: AAP -> Conv -> ReLU -> upsample
+        self.aap = nn.AdaptiveAvgPool2d(1)
+        self.gap_conv = nn.Conv2d(c2, mid, kernel_size=1, stride=1, padding=0, bias=True)
+        self.gap_act = nn.ReLU(inplace=True)
+
+        # OutputConv: Conv -> BN -> ReLU -> Dropout
+        # concat channels = 5 * mid = 2.5 * c_out
+        self.out = nn.Sequential(
+            nn.Conv2d(5 * mid, c2, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(c2),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=drop),
+        )
+
+    def forward(self, x):
+        x0 = self.common(x)          # (B, c_out, H, W)
+
+        # shared reduced feature for skip + DW branches
+        t = self.reduce(x0)          # (B, mid, H, W)
+        H, W = t.shape[-2:]
+
+        skip = t
+        b1 = self.m4(t)
+        b2 = self.m5(t)
+        b3 = self.m6(t)
+
+        # GAP branch uses the common conv output x0
+        g = self.aap(x0)                         # (B, c_out, 1, 1)
+        g = self.gap_act(self.gap_conv(g))       # (B, mid, 1, 1)
+        g = F.interpolate(g, size=(H, W), mode="nearest")
+
+        y = torch.cat([skip, b1, b2, b3, g], dim=1)  # (B, 5*mid, H, W)
+        return self.out(y)
+
+
+
+  
 
 # ---------------------------------------------------------------------------
 # AquaYOLO custom blocks 
