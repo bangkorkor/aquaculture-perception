@@ -13,6 +13,8 @@ yolov26m_RUOD_120e,yolo26m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yam
 UW_YOLOv8_RUOD_120e,configs/models/uw-yolov8.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uw-yolov8_ruod_120e
 
 UODN_RUOD_120e,configs/models/uodn.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
+UODN2_RUOD_120e,configs/models/uodn2.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
+UODN3_RUOD_120e,configs/models/uodn3.yaml,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
 
 
 
@@ -42,14 +44,14 @@ yolov26m_DeepFish_120e,yolov26m.pt,yolov8m.pt,../data-processing/vision/DeepFish
 
 UW_YOLOv8_DeepFish_120e,configs/models/uw-yolov8.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,uw-yolov8_deepfish_120e
 
-UODN_RUOD_120e,configs/models/uodn.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,uodn_deepfish_120e
+UODN_DeepFish_120e,configs/models/uodn.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,uodn_deepfish_120e
 
 
-AGW_YOLOv8s_RUOD_120e,configs/models/agw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8s_deepfish_120e
-AGW_YOLOv8m_RUOD_120e,configs/models/agw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8m_deepfish_120e
+AGW_YOLOv8s_DeepFish_120e,configs/models/agw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8s_deepfish_120e
+AGW_YOLOv8m_DeepFish_120e,configs/models/agw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8m_deepfish_120e
 
-MAS_YOLOv11n_RUOD_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11n_deepfish_120e
-MAS_YOLOv11s_RUOD_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11s_deepfish_120e
+MAS_YOLOv11n_DeepFish_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11n_deepfish_120e
+MAS_YOLOv11s_DeepFish_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11s_deepfish_120e
 
 
 

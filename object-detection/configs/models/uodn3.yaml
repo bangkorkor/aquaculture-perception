@@ -1,4 +1,4 @@
-# udon 22,106,958 parameters, 52.0 GFLOPs
+# udon 19,917,774 parameters,  47.4 GFLOPs, interesting
 nc: 10
 
 backbone:
@@ -18,7 +18,7 @@ backbone:
   - [-1, 1, CSMBBackBone2, [256]]        # 6
 
   # P5/32
-  - [-1, 1, Conv, [512, 3, 2]]             # 7
+  - [-1, 1, Conv, [256, 3, 2]]             # 7
   - [-1, 1, CSMBBackBone1, [512]]        # 8
 
   # LKSP 
@@ -29,7 +29,7 @@ head:
   # --- top-down FPN ---
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]   # 10: P5 -> P4 size
   - [[-1, 6], 1, Concat, [1]]                    # 11: concat with P4
-  - [-1, 1, CSMBNeck1, [256]]                  # 12: P4_td (c_out=256)
+  - [-1, 1, CSMBNeck1, [128]]                  # 12: P4_td (c_out=256)
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]   # 13: -> P3 size
   - [[-1, 4], 1, Concat, [1]]                    # 14: concat with P3
@@ -40,7 +40,7 @@ head:
   - [[-1, 12], 1, Concat, [1]]                   # 17: concat with P4_td
   - [-1, 1, CSMBNeck1, [256]]                  # 18: P4_out (c_out=256)
 
-  - [-1, 1, Conv, [256, 3, 2]]                   # 19: P4 -> P5
+  - [-1, 1, Conv, [128, 3, 2]]                   # 19: P4 -> P5
   - [[-1, 9], 1, Concat, [1]]                    # 20: concat with P5 (SPPF)
   - [-1, 1, CSMBNeck1, [512]]                  # 21: P5_out (c_out=512)
 
