@@ -1,4 +1,4 @@
-# 13,055,102 parameters,  31.8 GFLOPs, most logical with yolov8s vanilla.
+# 12,694,398 parameters,  31.6 GFLOPs. changing the final conv
 
 nc: 10
 
@@ -54,7 +54,7 @@ head:
   - [[18, 14, 10], 1, Concat, [1]]              # 19: concat(P3down, P4td)
   - [-1, 1, LC2f, [256, 1, True]]               # 20: P4_out (40x40, 256)
 
-  - [20, 1, Conv, [256, 3, 2]]                  # 21: downsample to 20x20
+  - [20, 1, Conv, [128, 3, 2]]                  # 21: downsample to 20x20
   - [[21, 11], 1, Concat, [1]]                  # 22: concat(P4down, P5)
   - [-1, 1, LC2f, [512, 1, True]]               # 23: P5_out (20x20, 256)
 

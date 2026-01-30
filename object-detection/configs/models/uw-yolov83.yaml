@@ -1,4 +1,4 @@
-# 13,055,102 parameters,  31.8 GFLOPs, most logical with yolov8s vanilla.
+# 112,258,806 parameters,  30.5 GFLOPs, this is weird but more lightweight. 
 
 nc: 10
 
@@ -43,18 +43,18 @@ head:
   # --- top-down ---
   - [11, 1, nn.Upsample, [None, 2, "nearest"]]  # 12: P5 -> 40x40
   - [[12, 10], 1, Concat, [1]]                  # 13: concat(P5up, P4)
-  - [-1, 1, LC2f, [128, 1, True]]               # 14: P4_td (40x40, 256)            # could maybe set these to false too? # also try to /2 on all outputs from here on
+  - [-1, 1, LC2f, [64, 1, True]]               # 14: P4_td (40x40, 256)            # could maybe set these to false too? # also try to /2 on all outputs from here on
 
   - [14, 1, nn.Upsample, [None, 2, "nearest"]]  # 15: -> 80x80
   - [[15, 9], 1, Concat, [1]]                   # 16: concat(P4td_up, P3)
   - [-1, 1, LC2f, [128, 1, True]]               # 17: P3_out (80x80, 256)
 
   # --- bottom-up ---
-  - [17, 1, Conv, [128, 3, 2]]                  # 18: downsample to 40x40
+  - [17, 1, Conv, [64, 3, 2]]                  # 18: downsample to 40x40
   - [[18, 14, 10], 1, Concat, [1]]              # 19: concat(P3down, P4td)
   - [-1, 1, LC2f, [256, 1, True]]               # 20: P4_out (40x40, 256)
 
-  - [20, 1, Conv, [256, 3, 2]]                  # 21: downsample to 20x20
+  - [20, 1, Conv, [64, 3, 2]]                  # 21: downsample to 20x20
   - [[21, 11], 1, Concat, [1]]                  # 22: concat(P4down, P5)
   - [-1, 1, LC2f, [512, 1, True]]               # 23: P5_out (20x20, 256)
 
