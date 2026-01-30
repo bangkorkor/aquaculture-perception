@@ -12,7 +12,7 @@
         "device": [0],
         "workers": 2,
         "seed": 0,
-        "pretrained" : true,
+        "pretrained" : false,
         "deterministic": false 
       },
 
