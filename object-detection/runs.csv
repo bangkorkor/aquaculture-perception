@@ -10,15 +10,13 @@ yolov26n_RUOD_120e,yolo26n.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yam
 yolov26s_RUOD_120e,yolo26s.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,yolov26s_ruod_120e
 yolov26m_RUOD_120e,yolo26m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,yolov26m_ruod_120e
 
-UW_YOLOv8_RUOD_120e,configs/models/uw-yolov8.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uw-yolov8_ruod_120e
-UW_YOLOv82_RUOD_120e,configs/models/uw-yolov82.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uw-yolov82_ruod_120e
-UW_YOLOv83_RUOD_120e,configs/models/uw-yolov83.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uw-yolov83_ruod_120e
+UW_YOLOv8_RUOD_120e,configs/models/uw-yolov8.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov8_ruod_120e
+UW_YOLOv82_RUOD_120e,configs/models/uw-yolov82.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov82_ruod_120e
+UW_YOLOv83_RUOD_120e,configs/models/uw-yolov83.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov83_ruod_120e
 
-
-
-UODN_RUOD_120e,configs/models/uodn.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
-UODN2_RUOD_120e,configs/models/uodn2.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
-UODN3_RUOD_120e,configs/models/uodn3.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,uodn_ruod_120e
+UODN_RUOD_120e,configs/models/uodn.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uodn_ruod_120e
+UODN2_RUOD_120e,configs/models/uodn2.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uodn_ruod_120e
+UODN3_RUOD_120e,configs/models/uodn3.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uodn_ruod_120e
 
 
 
