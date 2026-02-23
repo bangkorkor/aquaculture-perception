@@ -1691,11 +1691,19 @@ def parse_model(d, ch, verbose=True):
             args = [c1, c2, *args[1:]]
 
         elif m is DSAM:
-            # DSAM takes two sources in `from` and outputs channels of the first (Fa)
-            assert isinstance(f, (list, tuple)) and len(f) == 2, "DSAM expects two sources in 'from'"
-            ch_f = [ch[x] for x in f]      # [c_a, c_b]
-            args = [ch_f] + args           # DSAM(ch_in=[c_a, c_b], *args)
-            c2 = ch_f[0]                   # output channels == channels of Fa
+            assert isinstance(f, (list, tuple)) and len(f) == 2
+            ch_f = [ch[x] for x in f]          # [c_fa, c_fb]
+
+            # If YAML passed c_out, use it (with width scaling)
+            if len(args) >= 1 and isinstance(args[0], (int, float)):
+                c2_raw = args[0]
+                c2 = make_divisible(min(c2_raw, max_channels) * width, 8) if c2_raw != nc else c2_raw
+                args = [ch_f, c2] + args[1:]   # DSAM(ch_in=[...], c_out=..., ...)
+            else:
+                c2 = ch_f[0]
+                args = [ch_f] + args           # DSAM(ch_in=[...], ...)
+
+            # output channels must match c2
 
         elif m is AquaResidualBlock:
             # Build (c1, c2, stride) correctly from YAML

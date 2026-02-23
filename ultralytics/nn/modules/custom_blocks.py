@@ -501,226 +501,418 @@ class LKSP(nn.Module):
 # ---------------------------------------------------------------------------
 # AquaYOLO custom blocks 
 # ---------------------------------------------------------------------------
-# Basic Conv + BN + Activation (used everywhere)
-class AQUAYOLO_ConvBNAct(nn.Module):
-    """
-    Conv2d → BatchNorm2d → Activation (default: ReLU)
-    Works like Ultralytics Conv block but lighter for custom modules.
-    """
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):    # We try kernel size 1x1 to limit parameters, paper does not specify
-        super().__init__()
-        if p is None:
-            p = k // 2 # This will give padding = 1
-        self.conv = nn.Conv2d(c1, c2, k, s, p, groups=g, bias=False) # Bias is off because of the following BN
-        self.bn = nn.BatchNorm2d(c2)
-        self.act = nn.ReLU(inplace=True) if act else nn.Identity()
-
-    def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
-
-# Residual Block (AquaYOLO backbone)
-# class AquaResidualBlock(nn.Module):
-#     """
-#     Two AQUAYOLO_ConvBNAct blocks + skip connection.
-#     Paper: AquaYOLO residual backbone (Fig. 1)  The paper does not explicitly mention BN but we use it. 
-#     """
-#     def __init__(self, c1, c2, stride=1):
-#         super().__init__()
-#         self.conv1 = AQUAYOLO_ConvBNAct(c1, c2, k=3, s=stride)
-#         self.conv2 = AQUAYOLO_ConvBNAct(c2, c2, k=3, s=1, act=False)
-#         self.proj = None
-#         if stride != 1 or c1 != c2:
-#             self.proj = AQUAYOLO_ConvBNAct(c1, c2, k=1, s=stride, act=False)
-#         self.act = nn.ReLU(inplace=True)
-
-#     def forward(self, x):
-#         identity = x if self.proj is None else self.proj(x)
-#         out = self.conv2(self.conv1(x))
-#         return self.act(out + identity)
 
 class AquaResidualBlock(nn.Module):
     """
-    Residual block as in the paper: [37] in paper goes in detail.
-      - Two 3×3 Conv2d layers (stride=1, padding=1), no BN inside the block
-      - Add skip (identity) to the stacked conv output
-      - Apply ReLU AFTER the addition
+    AquaResidualBlock (paper-style residual block) with a projection shortcut when needed.
 
-    Notes from the paper:
-      - The residual block contains two convolutional layers.
-      - Each conv layer uses 3×3 kernels; ReLU is applied after the skip-add.
-      - BatchNorm is used in the *separate conv layer that follows the block*,
-        not inside the block itself. :contentReference[oaicite:0]{index=0}
+    What the paper shows (Figure 1):
+        main path: 3x3 Conv -> ReLU -> 3x3 Conv
+        skip path: x (identity)
+        output: ReLU( main + skip )
+
+    The catch (your backbone diagram):
+        Some of these "ResNet" blocks use stride=2 to downsample spatially and/or change channels.
+        If the main path changes shape (H,W,C), then the skip path can't be raw x anymore,
+        because you cannot add tensors of different shapes.
+
+    So we do the standard ResNet trick:
+        - If shapes match: skip = x (identity)
+        - If shapes differ: skip = 1x1 Conv(x) with stride=s to match (H,W,C)
+
+    No BatchNorm inside this block (as described in the paper text).
     """
-    def __init__(self, c1: int, c2: int, s: int = 1, k: int = 3, p: int = None, bias: bool = True): # Paper does not specify bias, but because it is not followed directly by BN we use it
+
+    def __init__(
+        self,
+        c1: int,           # input channels
+        c2: int,           # output channels
+        s: int = 1,        # stride (s=2 does downsampling)
+        k: int = 3,        # kernel size for the 3x3 convs (paper uses 3)
+        p: int = None,     # padding; if None we use "same" padding for odd kernels
+        bias: bool = True  # bias=True is reasonable since there's no BN inside the block
+    ):
         super().__init__()
+
+        # For k=3, "same" padding is p=1 so spatial size is preserved when stride=1.
         if p is None:
-            # 'same' padding for odd k (k=3 → p=1)
             p = k // 2
 
-        # main path
-        self.conv1 = nn.Conv2d(c1, c2, kernel_size=k, stride=s, padding=p, bias=bias) # only here we set the stride ok
-        self.conv2 = nn.Conv2d(c2, c2, kernel_size=k, stride=1, padding=p, bias=bias)       
+        # Main branch: g(x)
+        # conv1: 3x3, stride = s
+        # If s=2, this is where we reduce H,W by half.
+        self.conv1 = nn.Conv2d(
+            in_channels=c1,
+            out_channels=c2,
+            kernel_size=k,
+            stride=s,
+            padding=p,
+            bias=bias
+        )
+        self.relu1 = nn.ReLU(inplace=True)
 
-        # projection for shape change, this makes it so that the block gets stride=s
-        self.proj = None
-        if s != 1 or c1 != c2:
-            self.proj = nn.Conv2d(c1, c2, kernel_size=1, stride=s, padding=0, bias=bias)
+        # conv2: 3x3, stride = 1
+        # Keeps the already-downsampled size produced by conv1.
+        self.conv2 = nn.Conv2d(
+            in_channels=c2,
+            out_channels=c2,
+            kernel_size=k,
+            stride=1,
+            padding=p,
+            bias=bias
+        )
 
+        # Skip branch: x (identity) OR projection
+        # We need skip to have the SAME SHAPE as g(x) so we can add:
+        #   y = g(x) + skip
+        #
+        # g(x) has shape: [B, c2, H/s, W/s]  (s is 1 or 2)
+        # raw x has shape: [B, c1, H,   W]
+        #
+        # If (c1==c2 and s==1), shapes match and we can use identity.
+        # Otherwise, we use a 1x1 conv with stride s to match both channels AND spatial size.
+        if (c1 == c2) and (s == 1):
+            self.skip = nn.Identity()
+        else:
+            self.skip = nn.Conv2d(
+                in_channels=c1,
+                out_channels=c2,
+                kernel_size=1,   # 1x1 projection
+                stride=s,        # stride must match conv1 so H,W match
+                padding=0,
+                bias=bias
+            )
+
+        # Final activation after the addition (matches Figure 1)
+        self.relu_out = nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward:
+          1) compute main = g(x) = conv2(ReLU(conv1(x)))
+          2) compute skip = x      (identity) OR 1x1 projection
+          3) add: out = main + skip
+          4) ReLU after the addition
+        """
+
+        # ---- main path g(x) ----
+        main = self.conv1(x)
+        main = self.relu1(main)
+        main = self.conv2(main)
+
+        # ---- skip path ----
+        skip = self.skip(x)
+
+        # ---- residual add + activation ----
+        out = main + skip
+        out = self.relu_out(out)
+        return out
+
+
+# Basic Conv + BN + Activation 
+class AQUAYOLO_ConvBNAct(nn.Module):
+    """
+    Small helper block to match the paper diagrams:
+      Conv -> BatchNorm -> ReLU
+
+    We use bias=False because BN has its own affine parameters.
+    """
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, p: int | None = None):
+        super().__init__()
+        if p is None:
+            p = k // 2  # "same" padding for odd kernels
+        self.conv = nn.Conv2d(c1, c2, k, s, p, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
         self.act = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        identity = x if self.proj is None else self.proj(x)
-        out = self.conv2(self.conv1(x))
-        out = out + identity
-        return self.act(out)
+        return self.act(self.bn(self.conv(x)))
 
 
-
-class CAFS(nn.Module):
-    def __init__(self, c, hidden=None):
+class ConvOnly(nn.Module):
+    """
+    Pure conv with no BN/activation.
+    The paper diagrams show some conv stacks without explicit BN/activation blocks (purple boxes).
+    """
+    def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, p: int | None = None, bias: bool = True):
         super().__init__()
-        h = hidden or c
+        if p is None:
+            p = k // 2
+        self.conv = nn.Conv2d(c1, c2, k, s, p, bias=bias)
 
-        # pre-convs on Fa and Fb (as you already have)
-        self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=1, s=1)
-        self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=1, s=1)
-
-        # central mix from concat -> h (C channels)
-        self.mix = nn.Sequential(
-            AQUAYOLO_ConvBNAct(2 * c, h, k=1, s=1),     # 2*c because of concat
-            AQUAYOLO_ConvBNAct(h,     c, k=1, s=1),
-        )
-
-        # RIGHT path: three plain convs fed from h (C -> C), then CBR to 2ch, softmax
-        self.right_plain = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=1, bias=True),        
-            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=True),
-            nn.Conv2d(c, c, kernel_size=3, padding=1, bias=True),
-        )
-        self.right_cbr = AQUAYOLO_ConvBNAct(c, 2, k=1, s=1)    # produces 2-channel logits
-
-        # LEFT gate: from h
-        self.left = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=1, bias=True),
-            AQUAYOLO_ConvBNAct(c, c, k=1, s=1),
-        )
-
-    def forward(self, Fa, Fb):
-        Fa_p = self.pre_a(Fa)
-        Fb_p = self.pre_b(Fb)
-        cat  = torch.cat([Fa_p, Fb_p], dim=1)
-
-        h = self.mix(cat)                                     # [B, C, H, W]
-
-        ab_feat = self.right_plain(h)                         # now expects C, gets C
-        logits  = self.right_cbr(ab_feat)                     # [B, 2, H, W]
-        Wa, Wb  = torch.softmax(logits, dim=1).chunk(2, dim=1)
-
-        Wf = torch.sigmoid(self.left(h))                      # [B, C, H, W]
-
-        fused = Wa * Fa + Wb * Fb
-        out   = fused + (Wf * h)
-        return out
-
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.conv(x)
 
 
 class FAU(nn.Module):
     """
-    FAU (Feature Alignment Unit):
-      - Resize Fb to Fa's H×W using bilinear
-      - 3×3 Conv + BN + ReLU
+    Feature Alignment Unit (FAU) as described in the paper:
+      (Up/Down Sampling) + Conv + BN + ReLU 
+
+    Purpose:
+      Take a feature map from some level (Fb) and align it to the "current level" (Fa)
+      so they can be combined.
+      - Spatial alignment: resize to (H_a, W_a)
+      - Channel alignment: project channels to c_out (normally channels of Fa)
     """
-    def __init__(self, c_in, c_out):
+    def __init__(self, c_in: int, c_out: int, k: int = 1):
         super().__init__()
-        self.conv = AQUAYOLO_ConvBNAct(c_in, c_out, k=1, s=1)   # does not specify kernel size, we try k=1
+        # Use k=1 by default: cheap channel alignment after resizing.
+        # You can set k=3 if you want more spatial mixing inside FAU.
+        self.proj = AQUAYOLO_ConvBNAct(c_in, c_out, k=k, s=1)
 
-    def forward(self, x, target_hw):
-        x = F.interpolate(x, size=target_hw, mode='bilinear', align_corners=False)
-        return self.conv(x)
+    def forward(self, x: torch.Tensor, target_hw: tuple[int, int]) -> torch.Tensor:
+        # 1) spatial alignment (upsample OR downsample)
+        if x.shape[-2:] != target_hw:
+            # 'nearest' matches typical YOLO neck behavior and avoids smoothing edges
+            x = F.interpolate(x, size=target_hw, mode="nearest")
 
-    
+        # 2) channel alignment + nonlinearity (Conv+BN+ReLU)
+        return self.proj(x)
+
+
+class CAFS(nn.Module):
+    """
+    CAFS: Context-Aware Feature Selection
+
+    Inputs:
+      Fa, Fb: feature maps that should already be aligned to the same spatial size (H,W).
+              Channels can be assumed the same too in the typical DSAM usage.
+
+    Diagram logic (Figure 3):
+      1) Fa -> ConvBNReLU
+         Fb -> ConvBNReLU
+      2) concat -> trunk ConvBNReLU -> trunk ConvBNReLU   (context feature)
+      3) Wf branch:
+           trunk -> Conv(k=1) -> ConvBNReLU -> Sigmoid -> multiply with trunk -> Wf
+      4) Wa/Wb branch:
+           trunk -> Conv(k=1) -> Conv(k=3) -> Conv(k=3) -> ConvBNReLU -> Softmax -> Wa,Wb
+      5) selection:
+           Wa * Fa + Wb * Fb
+      6) output:
+           (Wa*Fa + Wb*Fb) + Wf
+
+    Notes:
+      - Wa/Wb are *spatial* weights (shape Bx1xHxW each).
+      - Wf is a *feature map* (shape BxCxHxW).
+      - This module does NOT change spatial resolution.
+      - Output channels = c (the working channel width).
+    """
+
+    def __init__(self, c: int, do_pre: bool = True, hidden_ratio: float = 0.25):
+        super().__init__()
+        self.c = c
+        self.do_pre = do_pre
+
+        # -------------------------------------------------------
+        # (A) Pre-processing before concat (top two yellow boxes)
+        # -------------------------------------------------------
+        # These are applied separately to Fa and Fb BEFORE concatenation.
+        # If your DSAM already did these convs, set do_pre=False. IT DOES NOT
+        if do_pre:
+            self.pre_a = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+            self.pre_b = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+        else:
+            self.pre_a = nn.Identity()
+            self.pre_b = nn.Identity()
+
+        # -------------------------------------------------------
+        # (B) Trunk after concat (two middle yellow boxes)
+        # -------------------------------------------------------
+        # Concat makes channels 2c, then we compress back to c.
+        self.trunk1 = AQUAYOLO_ConvBNAct(2 * c, c, k=3, s=1)
+        self.trunk2 = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)
+
+        # -------------------------------------------------------
+        # (C) Wf branch (left side in the figure)
+        #     trunk -> Conv(k=1) -> ConvBNReLU -> Sigmoid -> multiply -> Wf
+        # -------------------------------------------------------
+        self.wf_conv1 = nn.Conv2d(c, c, kernel_size=1, stride=1, padding=0, bias=True)  # purple Conv(k=1)
+        self.wf_conv2 = AQUAYOLO_ConvBNAct(c, c, k=3, s=1)                                      # yellow Conv+BN+ReLU
+        self.wf_sigmoid = nn.Sigmoid()
+
+        # -------------------------------------------------------
+        # (D) Wa/Wb branch (right side in the figure)
+        #     trunk -> Conv(k=1) -> Conv(k=3) -> Conv(k=3) -> ConvBNReLU -> Softmax -> Wa,Wb
+        # -------------------------------------------------------
+        hidden = max(8, int(c * hidden_ratio))
+
+        self.wab_conv1 = nn.Conv2d(c, hidden, kernel_size=1, stride=1, padding=0, bias=True)  # purple Conv(k=1)
+        self.wab_conv2 = nn.Conv2d(hidden, hidden, kernel_size=3, stride=1, padding=1, bias=True)  # purple Conv(k=3)
+        self.wab_conv3 = nn.Conv2d(hidden, hidden, kernel_size=3, stride=1, padding=1, bias=True)  # purple Conv(k=3)
+        self.wab_post  = AQUAYOLO_ConvBNAct(hidden, hidden, k=3, s=1)  # yellow Conv+BN+ReLU
+
+        # Produce 2 logits maps (Wa_logit and Wb_logit), then softmax across the 2 channels
+        self.wab_logits = nn.Conv2d(hidden, 2, kernel_size=1, stride=1, padding=0, bias=True)
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, fa: torch.Tensor, fb: torch.Tensor) -> torch.Tensor:
+        # Sanity: CAFS expects both feature maps already aligned in size.
+        assert fa.shape[-2:] == fb.shape[-2:], f"Fa/Fb spatial mismatch: {fa.shape} vs {fb.shape}"
+
+        # If channels differ, you should align them BEFORE calling CAFS (typically via FAU).
+        assert fa.shape[1] == self.c and fb.shape[1] == self.c, \
+            f"CAFS expects channel={self.c}, got Fa={fa.shape[1]}, Fb={fb.shape[1]}"
+
+        # -------------------------
+        # 1) Pre-conv on Fa and Fb
+        # -------------------------
+        fa0 = self.pre_a(fa)  # ConvBNReLU(Fa) in the diagram
+        fb0 = self.pre_b(fb)  # ConvBNReLU(Fb)
+
+        # -------------------------
+        # 2) Concat and trunk convs
+        # -------------------------
+        x = torch.cat([fa0, fb0], dim=1)   # Concatenation block
+        x = self.trunk1(x)                # trunk conv 1
+        x = self.trunk2(x)                # trunk conv 2
+        # x is now the "context feature" used by both branches.
+
+        # -------------------------
+        # 3) Wf branch (sigmoid)
+        # -------------------------
+        # gate in [0,1]
+        wf_gate = self.wf_sigmoid(self.wf_conv2(self.wf_conv1(x)))
+        # element-wise multiplication (purple ⊗ in the figure)
+        wf = wf_gate * x
+
+        # -------------------------
+        # 4) Wa/Wb branch (softmax)
+        # -------------------------
+        wab = self.wab_conv1(x)
+        wab = self.wab_conv2(wab)
+        wab = self.wab_conv3(wab)
+        wab = self.wab_post(wab)
+
+        wab_logits = self.wab_logits(wab)     # (B,2,H,W)
+        wab = self.softmax(wab_logits)        # softmax over the 2 channels => Wa/Wb
+
+        wa = wab[:, 0:1, :, :]                # (B,1,H,W)
+        wb = wab[:, 1:2, :, :]                # (B,1,H,W)
+
+        # -------------------------
+        # 5) Apply Wa/Wb to Fa and Fb
+        # -------------------------
+        # The figure shows Wa and Wb multiplying Fa and Fb (purple ⊗), then summed (green ⊕).
+        selected = wa * fa + wb * fb
+
+        # -------------------------
+        # 6) Final output = selected + Wf
+        # -------------------------
+        out = selected + wf
+        return out
+
+
 class DSAM(nn.Module):
     """
-    DSAM (Fig. 2-style) with clear naming.
+    DSAM replicating the *two-path* structure in Figure 2:
 
-    Inputs
-      Fa : [B, C_a, H, W]  (target scale)
-      Fb : [B, C_b, h, w]  (adjacent scale)
+    LEFT (interaction) PATH:
+      Fa -> FAU
+      Fb -> FAU
+      element-wise multiplication (⊗)  -> produces interaction feature
 
-    Wiring
-      Left:
-        Fa --FAU--> L_a
-        Fb --FAU--> L_b (the output must match C_a dimentions so that we can do ultiplication)
-        left_mul = L_a ⊗ L_b                       # element-wise multiply
+    RIGHT (selection) PATH:
+      Fa -> ConvBNReLU -> FAU -> ConvBNReLU
+      Fb -> ConvBNReLU -> FAU -> ConvBNReLU
+      -> CAFS -> ConvBNReLU
 
-      Right CAFS branch:
-        Fa: CBR -> FAU(align/refresh) -> CBR       # stays at (H,W), ends at C_a
-        Fb: CBR -> FAU(align to Fa) -> CBR         # becomes (H,W), C_a
-        cafs_out = CAFS(Fa_path, Fb_path) -> CBR   # post CBR per fig
+    Then the diagram shows the interaction result being combined with the right-path output
+    (element-wise addition) and a 1x1 conv appearing on that combined path.
 
-      Merge & final:
-        added = left_mul ⊕ cafs_out                # element-wise add
-        out   = 1×1 Conv (+BN+ReLU)                # your requested final layer
+    Output channels:
+      By default, output channels = channels(Fa) (paper-faithful; FAU aligns to Fa). 
+      Optionally, you can pass c_out to force a fixed width.
     """
-    def __init__(self, ch_in, ch_b=None):
+    def __init__(
+        self,
+        ch_in: Sequence[int],        # [c_fa, c_fb] (parse_model passes this)
+        c_out: Optional[int] = None, # optional override
+        fau_k: int = 1,              # 1x1 alignment conv inside FAU
+    ):
         super().__init__()
-        # Accept C_a alone or (C_a, C_b)
-        if isinstance(ch_in, (list, tuple)):
-            C_a, C_b = ch_in
-        else:
-            C_a, C_b = ch_in, (ch_b if ch_b is not None else ch_in)
+        assert len(ch_in) == 2, "DSAM expects ch_in=[c_fa, c_fb]"
+        c_fa, c_fb = int(ch_in[0]), int(ch_in[1])
 
-        # ---------- Left path ( FAU on Fa and Fb, then multiply them) ----------
-        self.left_fau_A = FAU(c_in=C_a, c_out=C_a)
-        self.left_fau_B = FAU(c_in=C_b, c_out=C_a)
+        # Choose output width.
+        # Paper intent: align to current level Fa => c_out = c_fa by default.
+        self.c_out = c_fa if c_out is None else int(c_out)
 
-        # ---------- Right path → CAFS ----------
-        # Fa sub-path into CAFS: CBR -> FAU -> CBR (kept even if size already matches, to mirror fig)
-        self.fa_pre_cbr   = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
-        self.fa_align_fau = FAU(c_in=C_a, c_out=C_a)
-        self.fa_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
+        # ---------- LEFT path (interaction) ----------
+        # FAU aligns both features to (H_a, W_a, c_out) so we can multiply them.
+        self.fau_left_a = FAU(c_fa, self.c_out, k=fau_k)
+        self.fau_left_b = FAU(c_fb, self.c_out, k=fau_k)
 
-        # Fb sub-path into CAFS: CBR -> FAU(align to Fa) -> CBR
-        self.fb_pre_cbr   = AQUAYOLO_ConvBNAct(C_b, C_b, k=1, s=1)
-        self.fb_align_fau = FAU(c_in=C_b, c_out=C_a)          # also changes channels to C_a
-        self.fb_post_cbr  = AQUAYOLO_ConvBNAct(C_a, C_a, k=1, s=1)
+        # After we combine (multiply + add later), the figure shows a Conv(k=1) block.
+        self.left_conv1x1 = nn.Conv2d(self.c_out, self.c_out, kernel_size=1, stride=1, padding=0, bias=True)
 
-        # CAFS core (your fixed, figure-faithful version)
-        self.cafs = CAFS(c=C_a)
+        # ---------- RIGHT path (selection + CAFS) ----------
+        # Each input goes through Conv+BN+ReLU BEFORE FAU in the figure.
+        self.pre_a = AQUAYOLO_ConvBNAct(c_fa, self.c_out, k=3, s=1)
+        self.pre_b = AQUAYOLO_ConvBNAct(c_fb, self.c_out, k=3, s=1)
 
-        # post-CAFS CBR (yellow box under CAFS)
-        self.cafs_out_cbr = AQUAYOLO_ConvBNAct(C_a, C_a, k=3, s=1)
+        # Then FAU blocks (align spatially to Fa's size, keep c_out channels)
+        self.fau_right_a = FAU(self.c_out, self.c_out, k=fau_k)
+        self.fau_right_b = FAU(self.c_out, self.c_out, k=fau_k)
 
-        # final 1×1 conv
-        self.final_conv = nn.Conv2d(C_a, C_a, kernel_size=1, bias=True)     # No Bn after so we use bias
+        # Then Conv+BN+ReLU AFTER FAU in the figure
+        self.post_a = AQUAYOLO_ConvBNAct(self.c_out, self.c_out, k=3, s=1)
+        self.post_b = AQUAYOLO_ConvBNAct(self.c_out, self.c_out, k=3, s=1)
 
-    def forward(self, inputs):
-        Fa, Fb = inputs
-        H, W = Fa.shape[-2:]
+        # CAFS selection/fusion + final Conv+BN+ReLU
+        self.cafs = CAFS(self.c_out)
+        self.right_out = AQUAYOLO_ConvBNAct(self.c_out, self.c_out, k=3, s=1)
 
-        # ----- Left path -----
-        L_a = self.left_fau_A(Fa, target_hw=(H, W))      # [B, C_a, H, W]
-        L_b = self.left_fau_B(Fb, target_hw=(H, W))      # [B, C_a, H, W]
-        left_mul = L_a * L_b                             # element-wise multiply
+    def forward(self, x):
+        """
+        Ultralytics will pass x as [Fa, Fb] because your YAML uses from=[[...], ...]
+        """
+        assert isinstance(x, (list, tuple)) and len(x) == 2, "DSAM forward expects [Fa, Fb]"
+        fa, fb = x
 
-        # ----- Right path (Fa branch) -----
-        fa1 = self.fa_pre_cbr(Fa)                         # [B, C_a, H, W]
-        fa2 = self.fa_align_fau(fa1, target_hw=(H, W))    # [B, C_a, H, W]
-        fa3 = self.fa_post_cbr(fa2)                       # [B, C_a, H, W]
+        # DSAM is defined relative to Fa (current level).
+        target_hw = fa.shape[-2:]
 
-        # ----- Right path (Fb branch) -----
-        fb1 = self.fb_pre_cbr(Fb)                         # [B, C_b, h, w]
-        fb2 = self.fb_align_fau(fb1, target_hw=(H, W))    # [B, C_a, H, W]
-        fb3 = self.fb_post_cbr(fb2)                       # [B, C_a, H, W]
+        # =========================
+        # LEFT: interaction branch
+        # =========================
+        # 1) align both features to Fa resolution + c_out channels
+        la = self.fau_left_a(fa, target_hw)  # (B, c_out, H_a, W_a)
+        lb = self.fau_left_b(fb, target_hw)  # (B, c_out, H_a, W_a)
 
-        # ----- CAFS + post CBR -----
-        cafs_out = self.cafs(fa3, fb3)                    # [B, C_a, H, W]
-        cafs_cbr_out = self.cafs_out_cbr(cafs_out)        # [B, C_a, H, W]
+        # 2) element-wise multiplication (purple ⊗ in the figure)
+        inter = la * lb                      # (B, c_out, H_a, W_a)
 
-        # ----- Add left & right, then final 1×1 -----
-        added = left_mul + cafs_cbr_out                   # element-wise add
-        out = self.final_conv(added)                      # 1×1 conv only
-        return out
+        # =========================
+        # RIGHT: CAFS branch
+        # =========================
+        # 1) Conv+BN+ReLU before FAU
+        ra = self.pre_a(fa)
+        rb = self.pre_b(fb)
+
+        # 2) FAU alignment (spatial) to Fa size
+        ra = self.fau_right_a(ra, target_hw)
+        rb = self.fau_right_b(rb, target_hw)
+
+        # 3) Conv+BN+ReLU after FAU
+        ra = self.post_a(ra)
+        rb = self.post_b(rb)
+
+        # 4) CAFS + final Conv+BN+ReLU
+        cafs_out = self.cafs(ra, rb)
+        right = self.right_out(cafs_out)
+
+        # =========================
+        # Combine branches (matches the add node + Conv(k=1) in the figure)
+        # =========================
+        # The diagram shows an element-wise addition node that mixes the interaction result with the CAFS path.
+        # Then a 1x1 conv appears on that combined path.
+        fused = right + inter
+        fused = self.left_conv1x1(fused)
+
+        return fused
+
+
 
 
 

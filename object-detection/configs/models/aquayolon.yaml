@@ -1,0 +1,37 @@
+# AquaYOLO-n (paper n-scale: d=0.33, w=0.25, r=2)
+# Channels: P1=16, P2=32, P3=64, P4=128, P5=256 (512*w*r)
+# Detect heads (per figure): [64, 128, 128]
+
+nc: 10
+
+backbone:
+  - [-1, 1, AquaResidualBlock, [16, 2]]     # P1/2
+  - [-1, 1, AquaResidualBlock, [32, 2]]     # P2/4
+  - [-1, 1, C2f,              [32, True]]   # n=3*d≈1
+
+  - [-1, 1, AquaResidualBlock, [64, 2]]     # P3/8
+  - [-1, 2, C2f,              [64, True]]   # n=6*d≈2
+
+  - [-1, 1, AquaResidualBlock, [128, 2]]    # P4/16
+  - [-1, 2, C2f,              [128, True]]  # n=6*d≈2
+
+  - [-1, 1, AquaResidualBlock, [256, 2]]    # P5/32
+  - [-1, 1, C2f,              [256, True]]  # n=3*d≈1
+  - [-1, 1, SPPF,             [256, 5]]
+
+head:
+  - [[6, 9],  1, DSAM, []]                  # P4 <- fuse(P4,P5)
+  - [-1,     1, C2f, [128, False]]          # n=3*d≈1
+
+  - [[4, -1], 1, DSAM, []]                  # P3 <- fuse(P3,P4)
+  - [-1,     1, C2f, [64, False]]           # n=3*d≈1  (P3)
+
+  - [-1,     1, Conv, [64, 3, 2]]           # P3 -> P4
+  - [[11,-1], 1, DSAM, []]                  # P4 <- fuse(P4,P3down)
+  - [-1,     1, C2f, [128, False]]          # n=3*d≈1  (P4)
+
+  - [-1,     1, Conv, [128, 3, 2]]          # P4 -> P5
+  - [[9, -1], 1, DSAM, []]                  # P5 <- fuse(P5,P4down)
+  - [-1,     1, C2f, [128, False]]          # per figure: P5 head uses 512*w (=128)
+
+  - [[13, 16, 19], 1, Detect, [nc]]         # ch=[64,128,128]
