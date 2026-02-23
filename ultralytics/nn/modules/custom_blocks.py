@@ -10,6 +10,8 @@ from ultralytics.utils.torch_utils import fuse_conv_and_bn
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
+from typing import Optional
+
 
 
 
@@ -617,7 +619,7 @@ class AQUAYOLO_ConvBNAct(nn.Module):
 
     We use bias=False because BN has its own affine parameters.
     """
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, p: int | None = None):
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, p: Optional[int] = None):
         super().__init__()
         if p is None:
             p = k // 2  # "same" padding for odd kernels
@@ -634,7 +636,7 @@ class ConvOnly(nn.Module):
     Pure conv with no BN/activation.
     The paper diagrams show some conv stacks without explicit BN/activation blocks (purple boxes).
     """
-    def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, p: int | None = None, bias: bool = True):
+    def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, p: Optional[int] = None, bias: bool = True):
         super().__init__()
         if p is None:
             p = k // 2
