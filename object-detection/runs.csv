@@ -77,3 +77,7 @@ yolov26m_UATD_120e,yolo26m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml
 AquaYOLOn_UATD_120e,configs/models/aquayolon.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolon_uatd_120e
 AquaYOLOs_UATD_120e,configs/models/aquayolos.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolos_uatd_120e
 AquaYOLOm_UATD_120e,configs/models/aquayolom.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolom_uatd_120e
+
+yolov11n-SDC_UATD_120e,configs/models/yolo11n-SDC.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_4work,outputs/training/UATD,yolov11n-SDC_uatd_120e
+yolov11s-SDC_UATD_120e,configs/models/yolo11s-SDC.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_4work,outputs/training/UATD,yolov11s-SDC_uatd_120e
+
