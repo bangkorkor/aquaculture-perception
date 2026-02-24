@@ -87,6 +87,12 @@ from .custom_blocks import (
     SEC2f,
     MSDA, C2PSA_MSDA, ASFFHead, ASFF,
 
+    # yolov11-sdc
+    C3k2_DRB,
+    C3k,
+    SF,
+    CGAFusion
+
 )
 
 from .conv import (
@@ -236,5 +242,12 @@ __all__ = (
     "FAU", 
     "CAFS", 
     "DSAM",
-    "AGW_GSConv"
+    "AGW_GSConv",
+
+    "C3k2_DRB",
+    "C3k",
+    "SF",
+    "CGAFusion",
+
+
 )

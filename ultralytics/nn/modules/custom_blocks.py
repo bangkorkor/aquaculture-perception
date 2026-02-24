@@ -9,8 +9,10 @@ from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
+from .block import Bottleneck, C3, C3k2
 
 from typing import Optional
+from einops import rearrange
 
 
 
@@ -1350,6 +1352,315 @@ class ASFFHead(Detect):
 
 
 
+# ==============================================================
+# yolov11-SDC
+# ===============================================================
+
+class C3k(C3):
+    """C3k is a CSP bottleneck module with customizable kernel sizes for feature extraction in neural networks."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, k=3):
+        """Initializes the C3k module with specified channels, number of layers, and configurations."""
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)  # hidden channels
+        # self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+
+
+from ..backbone.UniRepLKNet import get_bn, get_conv2d, NCHWtoNHWC, GRNwithNHWC, SEBlock, NHWCtoNCHW, fuse_bn, merge_dilated_into_large_kernel
+from timm.models.layers import DropPath
+class DilatedReparamBlock(nn.Module):
+
+    def __init__(self, channels, kernel_size, deploy=False, use_sync_bn=False, attempt_use_lk_impl=True):
+        super().__init__()
+        self.lk_origin = get_conv2d(channels, channels, kernel_size, stride=1,
+                                    padding=kernel_size//2, dilation=1, groups=channels, bias=deploy,
+                                    attempt_use_lk_impl=attempt_use_lk_impl)
+        self.attempt_use_lk_impl = attempt_use_lk_impl
+
+        if kernel_size == 17:
+            self.kernel_sizes = [5, 9, 3, 3, 3]
+            self.dilates = [1, 2, 4, 5, 7]
+        elif kernel_size == 15:
+            self.kernel_sizes = [5, 7, 3, 3, 3]
+            self.dilates = [1, 2, 3, 5, 7]
+        elif kernel_size == 13:
+            self.kernel_sizes = [5, 7, 3, 3, 3]
+            self.dilates = [1, 2, 3, 4, 5]
+        elif kernel_size == 11:
+            self.kernel_sizes = [5, 5, 3, 3, 3]
+            self.dilates = [1, 2, 3, 4, 5]
+        elif kernel_size == 9:
+            self.kernel_sizes = [5, 5, 3, 3]
+            self.dilates = [1, 2, 3, 4]
+        elif kernel_size == 7:
+            self.kernel_sizes = [5, 3, 3]
+            self.dilates = [1, 2, 3]
+        elif kernel_size == 5:
+            self.kernel_sizes = [3, 3]
+            self.dilates = [1, 2]
+        else:
+            raise ValueError('Dilated Reparam Block requires kernel_size >= 5')
+
+        if not deploy:
+            self.origin_bn = get_bn(channels, use_sync_bn)
+            for k, r in zip(self.kernel_sizes, self.dilates):
+                self.__setattr__('dil_conv_k{}_{}'.format(k, r),
+                                 nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=k, stride=1,
+                                           padding=(r * (k - 1) + 1) // 2, dilation=r, groups=channels,
+                                           bias=False))
+                self.__setattr__('dil_bn_k{}_{}'.format(k, r), get_bn(channels, use_sync_bn=use_sync_bn))
+
+    def forward(self, x):
+        if not hasattr(self, 'origin_bn'):      # deploy mode
+            return self.lk_origin(x)
+        out = self.origin_bn(self.lk_origin(x))
+        for k, r in zip(self.kernel_sizes, self.dilates):
+            conv = self.__getattr__('dil_conv_k{}_{}'.format(k, r))
+            bn = self.__getattr__('dil_bn_k{}_{}'.format(k, r))
+            out = out + bn(conv(x))
+        return out
+
+    def switch_to_deploy(self):
+        if hasattr(self, 'origin_bn'):
+            origin_k, origin_b = fuse_bn(self.lk_origin, self.origin_bn)
+            for k, r in zip(self.kernel_sizes, self.dilates):
+                conv = self.__getattr__('dil_conv_k{}_{}'.format(k, r))
+                bn = self.__getattr__('dil_bn_k{}_{}'.format(k, r))
+                branch_k, branch_b = fuse_bn(conv, bn)
+                origin_k = merge_dilated_into_large_kernel(origin_k, branch_k, r)
+                origin_b += branch_b
+            merged_conv = get_conv2d(origin_k.size(0), origin_k.size(0), origin_k.size(2), stride=1,
+                                    padding=origin_k.size(2)//2, dilation=1, groups=origin_k.size(0), bias=True,
+                                    attempt_use_lk_impl=self.attempt_use_lk_impl)
+            merged_conv.weight.data = origin_k
+            merged_conv.bias.data = origin_b
+            self.lk_origin = merged_conv
+            self.__delattr__('origin_bn')
+            for k, r in zip(self.kernel_sizes, self.dilates):
+                self.__delattr__('dil_conv_k{}_{}'.format(k, r))
+                self.__delattr__('dil_bn_k{}_{}'.format(k, r))
+
+
+class UniRepLKNetBlock(nn.Module):
+    def __init__(self,
+                 dim,
+                 kernel_size,
+                 drop_path=0.,
+                 layer_scale_init_value=1e-6,
+                 deploy=False,
+                 attempt_use_lk_impl=True,
+                 with_cp=False,
+                 use_sync_bn=False,
+                 ffn_factor=4):
+        super().__init__()
+        self.with_cp = with_cp
+
+        self.need_contiguous = (not deploy) or kernel_size >= 7
+
+        if kernel_size == 0:
+            self.dwconv = nn.Identity()
+            self.norm = nn.Identity()
+        elif deploy:
+            self.dwconv = get_conv2d(dim, dim, kernel_size=kernel_size, stride=1, padding=kernel_size // 2,
+                                     dilation=1, groups=dim, bias=True,
+                                     attempt_use_lk_impl=attempt_use_lk_impl)
+            self.norm = nn.Identity()
+        elif kernel_size >= 7:
+            self.dwconv = DilatedReparamBlock(dim, kernel_size, deploy=deploy,
+                                              use_sync_bn=use_sync_bn,
+                                              attempt_use_lk_impl=attempt_use_lk_impl)
+            self.norm = get_bn(dim, use_sync_bn=use_sync_bn)
+        elif kernel_size == 1:
+            self.dwconv = nn.Conv2d(dim, dim, kernel_size=kernel_size, stride=1, padding=kernel_size // 2,
+                                    dilation=1, groups=1, bias=deploy)
+            self.norm = get_bn(dim, use_sync_bn=use_sync_bn)
+        else:
+            assert kernel_size in [3, 5]
+            self.dwconv = nn.Conv2d(dim, dim, kernel_size=kernel_size, stride=1, padding=kernel_size // 2,
+                                    dilation=1, groups=dim, bias=deploy)
+            self.norm = get_bn(dim, use_sync_bn=use_sync_bn)
+
+        self.se = SEBlock(dim, dim // 4)
+
+        ffn_dim = int(ffn_factor * dim)
+        self.pwconv1 = nn.Sequential(
+            NCHWtoNHWC(),
+            nn.Linear(dim, ffn_dim))
+        self.act = nn.Sequential(
+            nn.GELU(),
+            GRNwithNHWC(ffn_dim, use_bias=not deploy))
+        if deploy:
+            self.pwconv2 = nn.Sequential(
+                nn.Linear(ffn_dim, dim),
+                NHWCtoNCHW())
+        else:
+            self.pwconv2 = nn.Sequential(
+                nn.Linear(ffn_dim, dim, bias=False),
+                NHWCtoNCHW(),
+                get_bn(dim, use_sync_bn=use_sync_bn))
+
+        self.gamma = nn.Parameter(layer_scale_init_value * torch.ones(dim),
+                                  requires_grad=True) if (not deploy) and layer_scale_init_value is not None \
+                                                         and layer_scale_init_value > 0 else None
+        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+
+    def forward(self, inputs):
+
+        def _f(x):
+            if self.need_contiguous:
+                x = x.contiguous()
+            y = self.se(self.norm(self.dwconv(x)))
+            y = self.pwconv2(self.act(self.pwconv1(y)))
+            if self.gamma is not None:
+                y = self.gamma.view(1, -1, 1, 1) * y
+            return self.drop_path(y) + x
+
+        if self.with_cp and inputs.requires_grad:
+            return checkpoint.checkpoint(_f, inputs)
+        else:
+            return _f(inputs)
+
+    def switch_to_deploy(self):
+        if hasattr(self.dwconv, 'switch_to_deploy'):
+            self.dwconv.switch_to_deploy()
+        if hasattr(self.norm, 'running_var') and hasattr(self.dwconv, 'lk_origin'):
+            std = (self.norm.running_var + self.norm.eps).sqrt()
+            self.dwconv.lk_origin.weight.data *= (self.norm.weight / std).view(-1, 1, 1, 1)
+            self.dwconv.lk_origin.bias.data = self.norm.bias + (self.dwconv.lk_origin.bias - self.norm.running_mean) * self.norm.weight / std
+            self.norm = nn.Identity()
+        if self.gamma is not None:
+            final_scale = self.gamma.data
+            self.gamma = None
+        else:
+            final_scale = 1
+        if self.act[1].use_bias and len(self.pwconv2) == 3:
+            grn_bias = self.act[1].beta.data
+            self.act[1].__delattr__('beta')
+            self.act[1].use_bias = False
+            linear = self.pwconv2[0]
+            grn_bias_projected_bias = (linear.weight.data @ grn_bias.view(-1, 1)).squeeze()
+            bn = self.pwconv2[2]
+            std = (bn.running_var + bn.eps).sqrt()
+            new_linear = nn.Linear(linear.in_features, linear.out_features, bias=True)
+            new_linear.weight.data = linear.weight * (bn.weight / std * final_scale).view(-1, 1)
+            linear_bias = 0 if linear.bias is None else linear.bias.data
+            linear_bias += grn_bias_projected_bias
+            new_linear.bias.data = (bn.bias + (linear_bias - bn.running_mean) * bn.weight / std) * final_scale
+            self.pwconv2 = nn.Sequential(new_linear, self.pwconv2[1])
+
+class C3k_UniRepLKNetBlock(C3k):
+    def __init__(self, c1, c2, n=1, k=7, shortcut=False, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)
+        self.m = nn.Sequential(*(UniRepLKNetBlock(c_, k) for _ in range(n)))
+
+class C3k2_UniRepLKNetBlock(C3k2):
+    def __init__(self, c1, c2, n=1, k=7, c3k=False, e=0.5, g=1, shortcut=True):
+        super().__init__(c1, c2, n, c3k, e, g, shortcut)
+        self.m = nn.ModuleList(C3k_UniRepLKNetBlock(self.c, self.c, 2, k, shortcut, g) if c3k else UniRepLKNetBlock(self.c, k) for _ in range(n))
+
+class Bottleneck_DRB(Bottleneck):
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__(c1, c2, shortcut, g, k, e)
+        c_ = int(c2 * e)  # hidden channels
+        self.cv2 = DilatedReparamBlock(c2, 7)
+
+class C3k_DRB(C3k):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, k=3):
+        super().__init__(c1, c2, n, shortcut, g, e, k)
+        c_ = int(c2 * e)  # hidden channels
+        self.m = nn.Sequential(*(Bottleneck_DRB(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+
+class C3k2_DRB(C3k2):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
+        super().__init__(c1, c2, n, c3k, e, g, shortcut)
+        self.m = nn.ModuleList(C3k_DRB(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck_DRB(self.c, self.c, shortcut, g, k=(3, 3), e=1.0) for _ in range(n))
+
+
+
+class SF(nn.Module):
+    def __init__(self, channel=512, features_to_keep=32, *args, **kwargs):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.features_to_keep = features_to_keep
+
+    def forward(self, x):
+        b, c, h, w = x.size()
+        y = self.avg_pool(x).view(b, c)
+        mean_y = torch.mean(y, dim=0, keepdim=True)
+        _, indices = torch.topk(mean_y, min(self.features_to_keep, c), dim=1)
+        indices = indices.repeat(b, 1)
+        reduced_features = torch.gather(x, 1, indices.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, h, w))
+
+        return reduced_features
+
+
+class SpatialAttention_CGA(nn.Module):
+    def __init__(self):
+        super(SpatialAttention_CGA, self).__init__()
+        self.sa = nn.Conv2d(2, 1, 7, padding=3, padding_mode='reflect', bias=True)
+
+    def forward(self, x):
+        x_avg = torch.mean(x, dim=1, keepdim=True)
+        x_max, _ = torch.max(x, dim=1, keepdim=True)
+        x2 = torch.concat([x_avg, x_max], dim=1)
+        sattn = self.sa(x2)
+        return sattn
+
+
+class ChannelAttention_CGA(nn.Module):
+    def __init__(self, dim, reduction=8):
+        super(ChannelAttention_CGA, self).__init__()
+        self.gap = nn.AdaptiveAvgPool2d(1)
+        self.ca = nn.Sequential(
+            nn.Conv2d(dim, dim // reduction, 1, padding=0, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(dim // reduction, dim, 1, padding=0, bias=True),
+        )
+
+    def forward(self, x):
+        x_gap = self.gap(x)
+        cattn = self.ca(x_gap)
+        return cattn
+
+
+class PixelAttention_CGA(nn.Module):
+    def __init__(self, dim):
+        super(PixelAttention_CGA, self).__init__()
+        self.pa2 = nn.Conv2d(2 * dim, dim, 7, padding=3, padding_mode='reflect', groups=dim, bias=True)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x, pattn1):
+        B, C, H, W = x.shape
+        x = x.unsqueeze(dim=2)
+        pattn1 = pattn1.unsqueeze(dim=2)
+        x2 = torch.cat([x, pattn1], dim=2)
+        x2 = rearrange(x2, 'b c t h w -> b (c t) h w')
+        pattn2 = self.pa2(x2)
+        pattn2 = self.sigmoid(pattn2)
+        return pattn2
+
+
+class CGAFusion(nn.Module):
+    def __init__(self, dim, reduction=8):
+        super(CGAFusion, self).__init__()
+        self.sa = SpatialAttention_CGA()
+        self.ca = ChannelAttention_CGA(dim, reduction)
+        self.pa = PixelAttention_CGA(dim)
+        self.conv = nn.Conv2d(dim, dim, 1, bias=True)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, data):
+        x, y = data
+        initial = x + y
+        cattn = self.ca(initial)
+        sattn = self.sa(initial)
+        pattn1 = sattn + cattn
+        pattn2 = self.sigmoid(self.pa(initial, pattn1))
+        result = initial + pattn2 * x + (1 - pattn2) * y
+        result = self.conv(result)
+        return result
 
 
 

@@ -95,7 +95,13 @@ from ultralytics.nn.modules import (
     AGW_CBAM,
     AGW_GSConv,
     SEC2f,
-    MSDA, C2PSA_MSDA, ASFFHead,ASFF
+    MSDA, C2PSA_MSDA, ASFFHead,ASFF,
+
+    # yolov11-SDC
+    C3k2_DRB,
+    C3k,
+    SF,
+    CGAFusion
 
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
@@ -1619,6 +1625,10 @@ def parse_model(d, ch, verbose=True):
             CSMBNeck1,
             LKSP,
 
+            # yolov11-sdc
+            C3k2_DRB,
+            SF,
+
            
         }
     )
@@ -1640,6 +1650,8 @@ def parse_model(d, ch, verbose=True):
             C2PSA,
             A2C2f,
             C2PSA_MSDA,
+            C3k2_DRB,
+
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
@@ -1806,6 +1818,17 @@ def parse_model(d, ch, verbose=True):
         elif m is AquaResidualBlock:
             # already set args & c2 above
             pass
+
+        elif m is CGAFusion:
+            # CGAFusion consumes TWO inputs, so f must be a list like [a, b]
+            assert isinstance(f, (list, tuple)) and len(f) == 2, "CGAFusion expects two sources in 'from'"
+
+            # Most CGA fusion modules output channels equal to one of the inputs.
+            # In the reference parse_model you showed earlier, it used the SECOND input's channels:
+            c2 = ch[f[1]]
+
+            # Many CGAFusion implementations want the channel count in __init__ (e.g., CGAFusion(c2, ...))
+            args = [c2, *args]
         # ------------------------------
         # -------- MY CODE DONE --------
         # ------------------------------
