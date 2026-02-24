@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 .env
 
+
 # Jupyter
 .ipynb_checkpoints/
 
@@ -14,7 +15,8 @@ aqua_yolo/data/
 solaqua/data/
 output/
 # ignores every processed folder within data-processing:
-data-processing/**/processed/   
+data-processing/**/processed/  
+
 
 
 # Models & large binaries
@@ -24,6 +26,7 @@ data-processing/**/processed/
 *.png
 *.jpg
 *.zip
+*.xz
 
 sam3.pt
 FastSAM-s.pt

@@ -1,0 +1,17 @@
+
+train: /cluster/home/henrban/aquaculture-perception/data-processing/sonar/FLS_Marine_Debris/processed/images/train
+val:   /cluster/home/henrban/aquaculture-perception/data-processing/sonar/FLS_Marine_Debris/processed/images/val
+test:  /cluster/home/henrban/aquaculture-perception/data-processing/sonar/FLS_Marine_Debris/processed/images/test
+
+nc: 10
+names:
+  - can
+  - bottle
+  - drink-carton
+  - chain
+  - propeller
+  - tire
+  - hook
+  - valve
+  - shampoo-bottle
+  - standing-bottle
