@@ -34,6 +34,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 # make .venv-mmdet
 /usr/bin/python -m venv .venv-mmdet
 source .venv-mmdet/bin/activate
+module load CUDA/12.8.0
 
 python -m pip install -U pip wheel setuptools
 python -m pip uninstall -y torch torchvision torchaudio mmcv mmcv-lite mmengine mmdet
