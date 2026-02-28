@@ -28,3 +28,24 @@ TODO
 ## 🧾 License
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
+## MMdetect setup:
+
+```bash 
+# make .venv-mmdet
+/usr/bin/python -m venv .venv-mmdet
+source .venv-mmdet/bin/activate
+
+python -m pip install -U pip wheel setuptools
+python -m pip uninstall -y torch torchvision torchaudio mmcv mmcv-lite mmengine mmdet
+
+python -m pip install \
+  torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
+  --index-url https://download.pytorch.org/whl/cu121
+
+python -m pip install -U openmim
+python -m pip install mmengine==0.10.7
+
+python -m pip install mmcv==2.1.0 \
+  -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
+```
+
