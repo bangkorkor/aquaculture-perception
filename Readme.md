@@ -8,12 +8,13 @@ This README will describe the structure of the project and how to get started.
 
 
 ## Project Structure
-TODO
+The ultralytics and the MMdetection libraries are used for object detection in this repo. 
+- Ultralytics experiments can be found in object-detection folder but the custom code is written in the forked ultralytics folder. 
 
 
 
 
-## Environments Setup
+## Environments Setup Ultralytics
 
 - Do 'python -m pip freeze > requirements.lock.txt' to get a .txt file of all dependencies. 
 - I use pyhon3.9 or newer. To make an enviorment do 'python3.9 -m venv .venv' (or 'python3 ...' ??)
@@ -27,6 +28,8 @@ TODO
 
 ## 🧾 License
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+# MMdetection
 
 ## MMdetect setup:
 
@@ -50,3 +53,30 @@ python -m pip install mmcv==2.1.0 \
   -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
 ```
 
+
+## How the code works
+Models are setup using config files. For fair experiments with my setup we use a _base_ setup. The actual model is configed in its own .py file. These files are (for the RUOD experiments) are found in mmdetection/configs/ruod/
+
+
+## commands
+
+All these command shaould be run from mmdetection root and the .venv-mmdet environment needs to be activated. 
+
+Activating venv and loading cuda:
+```
+source .venv-mmdet/bin/activate
+module load CUDA/12.8.0
+```
+
+Seeing the setup: (change the path of the model)
+```
+python tools/misc/print_config.py \
+  configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
+```
+
+Do the training:
+```
+module load CUDA/12.8.0
+CUDA_VISIBLE_DEVICES=0 python tools/train.py \
+  configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
+```
