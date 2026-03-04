@@ -23,7 +23,11 @@ The ultralytics and the MMdetection libraries are used for object detection in t
 - 'python -m pip install -r requirements.lock.txt' to install all packages inside requirements.lock.txt
 - 'python -m pip install -e ultralytics' to install ultralytics fork from this repo?
 
-
+## Quick comand troule:
+Sometimes i get that we cant import the ultralytics, this is because it cant find the init. Do this from root:
+````
+export PYTHONPATH=$PWD:$PYTHONPATH
+```
 
 
 ## 🧾 License
