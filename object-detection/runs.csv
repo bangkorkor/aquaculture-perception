@@ -10,6 +10,19 @@ yolov26n_RUOD_120e,yolo26n.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yam
 yolov26s_RUOD_120e,yolo26s.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,yolov26s_ruod_120e
 yolov26m_RUOD_120e,yolo26m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64,outputs/training/RUOD,yolov26m_ruod_120e
 
+yolov8n_RUOD_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8n_ruod_120e_fair
+yolov8s_RUOD_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8s_ruod_120e_fair
+yolov8m_RUOD_120e_fair,yolov8m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8m_ruod_120e_fair
+yolov11n_RUOD_120e_fair,yolo11n.pt,yolov11n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11n_ruod_120e_fair
+yolov11s_RUOD_120e_fair,yolo11s.pt,yolov11s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11s_ruod_120e_fair
+yolov11m_RUOD_120e_fair,yolo11m.pt,yolov11m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11m_ruod_120e_fair
+yolov26n_RUOD_120e_fair,yolo26n.pt,yolov26n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26n_ruod_120e_fair
+yolov26s_RUOD_120e_fair,yolo26s.pt,yolov26s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26s_ruod_120e_fair
+yolov26m_RUOD_120e_fair,yolo26m.pt,yolov26m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26m_ruod_120e_fair
+
+rt_detr_RUOD_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,rt_detr_RUOD_120e_fair
+
+
 UW_YOLOv8_RUOD_120e,configs/models/uw-yolov8.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov8_ruod_120e
 UW_YOLOv82_RUOD_120e,configs/models/uw-yolov82.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov82_ruod_120e
 UW_YOLOv83_RUOD_120e,configs/models/uw-yolov83.yaml,,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_4work,outputs/training/RUOD,uw-yolov83_ruod_120e
@@ -32,37 +45,9 @@ MAS_YOLOv11s_RUOD_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-proce
 
 
 
-------DeepFish. WE SHOULD NOT USE THIS- THIS DATASET SUCKS---------------------------------
-yolov8n_DeepFish_120e,yolov8n.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov8n_deepfish_120e
-yolov8s_DeepFish_120e,yolov8s.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov8s_deepfish_120e
-yolov8m_DeepFish_120e,yolov8m.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov8m_deepfish_120e
-yolov11n_DeepFish_120e,yolov11n.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov11n_deepfish_120e
-yolov11s_DeepFish_120e,yolov11s.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov11s_deepfish_120e
-yolov11m_DeepFish_120e,yolov11m.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov11m_deepfish_120e
-yolov26n_DeepFish_120e,yolov26n.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov26n_deepfish_120e
-yolov26s_DeepFish_120e,yolov26s.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov26s_deepfish_120e
-yolov26m_DeepFish_120e,yolov26m.pt,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,yolov26m_deepfish_120e
 
 
-UW_YOLOv8_DeepFish_120e,configs/models/uw-yolov8.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,uw-yolov8_deepfish_120e
-
-UODN_DeepFish_120e,configs/models/uodn.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,uodn_deepfish_120e
-
-
-AGW_YOLOv8s_DeepFish_120e,configs/models/agw_yolov8s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8s_deepfish_120e
-AGW_YOLOv8m_DeepFish_120e,configs/models/agw_yolov8m.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,agw-yolov8m_deepfish_120e
-
-MAS_YOLOv11n_DeepFish_120e,configs/models/mas_yolov11n.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11n_deepfish_120e
-MAS_YOLOv11s_DeepFish_120e,configs/models/mas_yolov11s.yaml,yolov8m.pt,../data-processing/vision/DeepFish/DeepFish.yaml,DeepFish_120e_batch64,outputs/training/DeepFish,mas-yolov11s_deepfish_120e
-
-
-
-
-
-
-
-
-------SONAR STUFF-----------------
+------SONAR STUFF UATD-----------------
 yolov8n_UATD_120e,yolov8n.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,yolov8n_uatd_120e
 yolov8s_UATD_120e,yolov8s.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,yolov8s_uatd_120e
 yolov8m_UATD_120e,yolov8m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,yolov8m_uatd_120e
