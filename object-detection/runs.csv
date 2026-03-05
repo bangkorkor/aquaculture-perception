@@ -13,13 +13,12 @@ yolov26m_RUOD_120e,yolo26m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yam
 yolov8n_RUOD_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8n_ruod_120e_fair
 yolov8s_RUOD_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8s_ruod_120e_fair
 yolov8m_RUOD_120e_fair,yolov8m.pt,yolov8m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov8m_ruod_120e_fair
-yolov11n_RUOD_120e_fair,yolo11n.pt,yolov11n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11n_ruod_120e_fair
-yolov11s_RUOD_120e_fair,yolo11s.pt,yolov11s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11s_ruod_120e_fair
-yolov11m_RUOD_120e_fair,yolo11m.pt,yolov11m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11m_ruod_120e_fair
-yolov26n_RUOD_120e_fair,yolo26n.pt,yolov26n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26n_ruod_120e_fair
-yolov26s_RUOD_120e_fair,yolo26s.pt,yolov26s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26s_ruod_120e_fair
-yolov26m_RUOD_120e_fair,yolo26m.pt,yolov26m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26m_ruod_120e_fair
-
+yolov11n_RUOD_120e_fair,yolo11n.pt,yolo11n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11n_ruod_120e_fair
+yolov11s_RUOD_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11s_ruod_120e_fair
+yolov11m_RUOD_120e_fair,yolo11m.pt,yolo11m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov11m_ruod_120e_fair
+yolov26n_RUOD_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26n_ruod_120e_fair
+yolov26s_RUOD_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26s_ruod_120e_fair
+yolov26m_RUOD_120e_fair,yolo26m.pt,yolo26m.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,yolov26m_ruod_120e_fair
 rt_detr_RUOD_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/RUOD/ruod.yaml,ruod_120e_batch64_fair,outputs/training/RUOD,rt_detr_RUOD_120e_fair
 
 
@@ -60,13 +59,14 @@ yolov26m_UATD_120e,yolo26m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml
 
 yolov8n_UATD_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8n_uatd_120e_fair
 yolov8s_UATD_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8s_uatd_120e_fair
+
 yolov8m_UATD_120e_fair,yolov8m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8m_uatd_120e_fair
-yolov11n_UATD_120e_fair,yolo11n.pt,yolov11n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11n_uatd_120e_fair
-yolov11s_UATD_120e_fair,yolo11s.pt,yolov11s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11s_uatd_120e_fair
-yolov11m_UATD_120e_fair,yolo11m.pt,yolov11m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11m_uatd_120e_fair
-yolov26n_UATD_120e_fair,yolo26n.pt,yolov26n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26n_uatd_120e_fair
-yolov26s_UATD_120e_fair,yolo26s.pt,yolov26s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26s_uatd_120e_fair
-yolov26m_UATD_120e_fair,yolo26m.pt,yolov26m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26m_uatd_120e_fair
+yolov11n_UATD_120e_fair,yolo11n.pt,yolo11n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11n_uatd_120e_fair
+yolov11s_UATD_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11s_uatd_120e_fair
+yolov11m_UATD_120e_fair,yolo11m.pt,yolo11m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11m_uatd_120e_fair
+yolov26n_UATD_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26n_uatd_120e_fair
+yolov26s_UATD_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26s_uatd_120e_fair
+yolov26m_UATD_120e_fair,yolo26m.pt,yolo26m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26m_uatd_120e_fair
 
 AquaYOLOn_UATD_120e,configs/models/aquayolon.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolon_uatd_120e
 AquaYOLOs_UATD_120e,configs/models/aquayolos.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolos_uatd_120e
