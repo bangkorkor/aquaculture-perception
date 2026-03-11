@@ -1,0 +1,5 @@
+python train.py --yaml ultralytics/models/v8/yolov8s.yaml --data URPC2022.yaml --workers 8 --batch 64 --name yolov8s --project runs/train/URPC2022 --imgsz 640 --cache --epochs 100;
+python train.py  --yaml ultralytics/models/v8/yolov8s-fasternet-Fbifpn.yaml --data UTDAC2020.yaml --workers 8 --batch 64 --name yolov8s-fasternet-Fbifpn-concat --project runs/train/UTDAC2020 --imgsz 640 --cache --epochs 100;
+python train.py  --yaml ultralytics/models/v8/yolov8s-fasternet.yaml --data URPC2022.yaml --workers 8 --batch 64 --name yolov8s-fasternet --project runs/train/URPC2022 --imgsz 640 --cache --epochs 100;
+python train.py  --yaml ultralytics/models/v8/yolov8s-fasternet-Fbifpn.yaml --data URPC2022.yaml --workers 8 --batch 64 --name yolov8s-fasternet-Fbifpn-concat --project runs/train/URPC2022 --imgsz 640 --cache --epochs 100;
+python train.py  --yaml ultralytics/models/v8/yolov8s-fasternet-bifpn.yaml --data URPC2022.yaml --workers 8 --batch 64 --name yolov8s-fasternet-bifpn --project runs/train/URPC2022 --imgsz 640 --cache --epochs 100;

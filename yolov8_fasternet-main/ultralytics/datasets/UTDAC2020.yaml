@@ -1,0 +1,10 @@
+train: /home/zhangziyi/zhangziyi/UTDAC2020/train/images  # train images (relative to 'path')  6471 images
+val: /home/zhangziyi/zhangziyi/UTDAC2020/val/images  # val images (relative to 'path')  548 images
+test: /home/zhangziyi/zhangziyi/UTDAC2020/test/images # test images (optional)  1610 images
+
+# Classes
+names:
+  0: echinus
+  1: starfish
+  2: holothurian
+  3: scallop
