@@ -176,7 +176,7 @@
       "uatd_120e_batch64_fair": {
         "epochs": 120,
         "imgsz": 640,
-        "batch": 64,
+        "batch": 32,
         "nbs": 64,
 
         "optimizer": "SGD",
@@ -191,7 +191,7 @@
 
         "amp": false,
         "device": [0],
-        "workers": 4,
+        "workers": 8,
         "seed": 0,
         "deterministic": false,
         "pretrained": true,

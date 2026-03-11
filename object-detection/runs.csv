@@ -59,10 +59,11 @@ yolov26m_UATD_120e,yolo26m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml
 
 yolov8n_UATD_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8n_uatd_120e_fair
 yolov8s_UATD_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8s_uatd_120e_fair
-
-yolov8m_UATD_120e_fair,yolov8m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8m_uatd_120e_fair
 yolov11n_UATD_120e_fair,yolo11n.pt,yolo11n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11n_uatd_120e_fair
 yolov11s_UATD_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11s_uatd_120e_fair
+
+
+yolov8m_UATD_120e_fair,yolov8m.pt,yolov8m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov8m_uatd_120e_fair
 yolov11m_UATD_120e_fair,yolo11m.pt,yolo11m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov11m_uatd_120e_fair
 yolov26n_UATD_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26n_uatd_120e_fair
 yolov26s_UATD_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26s_uatd_120e_fair
