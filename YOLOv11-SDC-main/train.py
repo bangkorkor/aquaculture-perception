@@ -52,5 +52,5 @@ if __name__ == '__main__':
 
         rect=False,
         project='runs/SDC',
-        name='uatd_120e_batch64_fair',
+        name='yolov11-sdc-uatd_120e_batch64_fair',
     )
