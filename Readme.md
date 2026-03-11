@@ -12,6 +12,7 @@ This README will describe the structure of the project and how to get started.
 - object-detection has the setup for the vanilla ultralytics experiments. This is my setup, the actual code for the ultralytics is found in ultralytics/ folder. this code is ran on the .venv enviornment. 
 - ultralytics has the ultralytics fork and i have tried customizing blocks for adding new models. But this folder mainly has the entire ultralytics library.
 - yolov8_fasternet-main has u-yolov8 training and testing. This is a fork from the authors of the original paper. This code needs to be run no the .venv-mmdet environment. All the results from this expriment is also within this folder.
+- YOLOv11-SDC-main ha code for this sonar detector. Should be in the .venv enviornment. 
 
 
 
