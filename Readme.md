@@ -78,9 +78,17 @@ python tools/misc/print_config.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
 ```
 
+Getting GFLOPS: (Does not work for every detector)
+```
+python tools/analysis_tools/get_flops.py \
+  configs/ruod/detr_r50_ruod_120e_pretrained.py
+```
+
 Do the training:
 ```
 module load CUDA/12.8.0
 CUDA_VISIBLE_DEVICES=0 python tools/train.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
 ```
+
+
