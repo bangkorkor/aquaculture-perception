@@ -68,11 +68,11 @@ yolov11m_UATD_120e_fair,yolo11m.pt,yolo11m.pt,../data-processing/sonar/UATD/uatd
 yolov26n_UATD_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26n_uatd_120e_fair
 yolov26s_UATD_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26s_uatd_120e_fair
 yolov26m_UATD_120e_fair,yolo26m.pt,yolo26m.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,yolov26m_uatd_120e_fair
+rt_detr_UATD_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_fair,outputs/training/UATD,rt_detr_uatd_120e_fair
+
 
 AquaYOLOn_UATD_120e,configs/models/aquayolon.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolon_uatd_120e
 AquaYOLOs_UATD_120e,configs/models/aquayolos.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolos_uatd_120e
 AquaYOLOm_UATD_120e,configs/models/aquayolom.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolom_uatd_120e
 
-yolov11n-SDC_UATD_120e,configs/models/yolo11n-SDC.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_4work,outputs/training/UATD,yolov11n-SDC_uatd_120e
-yolov11s-SDC_UATD_120e,configs/models/yolo11s-SDC.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64_4work,outputs/training/UATD,yolov11s-SDC_uatd_120e
 
