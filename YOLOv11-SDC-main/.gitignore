@@ -146,9 +146,7 @@ wandb/
 .DS_Store
 
 # Neural Network weights -----------------------------------------------------------------------------------------------
-weights/
 *.weights
-*.pt
 *.pb
 *.onnx
 *.engine
