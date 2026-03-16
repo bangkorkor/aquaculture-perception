@@ -103,3 +103,14 @@ model = dict(
 load_from = 'https://download.openmmlab.com/mmdetection/v3.0/detr/detr_r50_8xb2-150e_coco/detr_r50_8xb2-150e_coco_20221023_153551-436d03e8.pth'
 
 work_dir = '../runs/mmdet/detr_r50_ruod_120e_pretrained'
+
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook',
+        interval=-1,          # disable periodic epoch checkpoints
+        save_last=True,       # keep the final checkpoint
+        save_best='bbox_mAP', # keep the best val checkpoint
+        rule='greater',       # higher mAP is better
+        max_keep_ckpts=1,     # only keep the latest regular/best replacement
+    )
+)

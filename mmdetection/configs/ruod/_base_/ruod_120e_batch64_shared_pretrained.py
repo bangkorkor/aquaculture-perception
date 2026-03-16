@@ -46,7 +46,7 @@ test_pipeline = [
 # Heavy models like DetectoRS may not fit large per-step batches.
 # Use batch_size=1 and accumulate gradients to effective batch size 64.
 train_dataloader = dict(
-    batch_size=8,
+    batch_size=32,
     num_workers=8,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
@@ -119,14 +119,16 @@ test_evaluator = dict(
 # epochs=120, batch=64, optimizer=SGD, lr0=0.01, momentum=0.937,
 # weight_decay=0.0005, amp=False, workers=2, seed=0, deterministic=False
 optim_wrapper = dict(
-    type='OptimWrapper',  # amp=False
+    type='OptimWrapper',
     optimizer=dict(
-        type='SGD',
-        lr=0.01,
-        momentum=0.937,
-        weight_decay=0.0005,
+        type='AdamW',
+        lr=1e-4,
+        weight_decay=1e-4,
     ),
-    accumulative_counts=8,
+    clip_grad=dict(max_norm=0.1, norm_type=2),
+    paramwise_cfg=dict(
+        custom_keys={'backbone': dict(lr_mult=0.1, decay_mult=1.0)}
+    ),
 )
 
 # Shared simple schedule:
@@ -164,3 +166,15 @@ test_cfg = dict(type='TestLoop')
 randomness = dict(seed=0, deterministic=False)
 
 auto_scale_lr = dict(enable=False, base_batch_size=64)
+
+
+default_hooks = dict(
+    checkpoint=dict(
+        type='CheckpointHook',
+        interval=-1,
+        save_last=True,
+        save_best='coco/bbox_mAP',
+        rule='greater',
+        max_keep_ckpts=1,
+    )
+)
