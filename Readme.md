@@ -70,25 +70,25 @@ Models are setup using config files. For fair experiments with my setup we use a
 All these command shaould be run from mmdetection root and the .venv-mmdet environment needs to be activated. 
 
 Activating venv and loading cuda:
-```
+```bash
 source .venv-mmdet/bin/activate
 module load CUDA/12.8.0
 ```
 
 Seeing the setup: (change the path of the model)
-```
+```bash
 python tools/misc/print_config.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
 ```
 
 Getting GFLOPS: (Does not work for every detector)
-```
+```bash
 python tools/analysis_tools/get_flops.py \
   configs/ruod/detr_r50_ruod_120e_pretrained.py
 ```
 
 Do the training:
-```
+```bash
 module load CUDA/12.8.0
 CUDA_VISIBLE_DEVICES=0 python tools/train.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
@@ -99,7 +99,7 @@ CUDA_VISIBLE_DEVICES=0 python tools/train.py \
 
 # RunPod
 ### Moving files in runpod with rsync
-```
+```bash
 /opt/homebrew/bin/rsync -avP \
   -e "ssh -p 12211 -i ~/.ssh/id_ed25519 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o TCPKeepAlive=yes -o Compression=no" \
   UATD_Training.zip root@157.157.221.29:/workspace/
