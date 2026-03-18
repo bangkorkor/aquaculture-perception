@@ -167,14 +167,3 @@ randomness = dict(seed=0, deterministic=False)
 
 auto_scale_lr = dict(enable=False, base_batch_size=64)
 
-
-default_hooks = dict(
-    checkpoint=dict(
-        type='CheckpointHook',
-        interval=-1,
-        save_last=True,
-        save_best='coco/bbox_mAP',
-        rule='greater',
-        max_keep_ckpts=1,
-    )
-)
