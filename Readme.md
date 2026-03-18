@@ -28,7 +28,7 @@ This README will describe the structure of the project and how to get started.
 
 ## Quick comand troule:
 Sometimes i get that we cant import the ultralytics, this is because it cant find the init. Do this from root:
-````
+```
 export PYTHONPATH=$PWD:$PYTHONPATH
 ```
 
@@ -94,4 +94,14 @@ CUDA_VISIBLE_DEVICES=0 python tools/train.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
 ```
 
+
+
+
+# RunPod
+### Moving files in runpod with rsync
+```
+/opt/homebrew/bin/rsync -avP \
+  -e "ssh -p 12211 -i ~/.ssh/id_ed25519 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o TCPKeepAlive=yes -o Compression=no" \
+  UATD_Training.zip root@157.157.221.29:/workspace/
+```
 
