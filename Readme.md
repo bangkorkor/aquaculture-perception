@@ -94,8 +94,12 @@ CUDA_VISIBLE_DEVICES=0 python tools/train.py \
   configs/ruod/detectors_cascade_rcnn_r50_ruod_120e_pretrained.py
 ```
 
-
-
+Do the testing:
+```bash
+python tools/test.py \
+  configs/ruod/detr_r50_ruod_120e_pretrained.py \
+  ../runs/mmdet/detr_r50_ruod_120e_pretrained/best_coco_bbox_mAP_epoch_62.pth
+```
 
 # RunPod
 ### Moving files in runpod with rsync
