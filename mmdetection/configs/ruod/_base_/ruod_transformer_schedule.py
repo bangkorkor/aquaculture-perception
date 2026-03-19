@@ -1,6 +1,7 @@
 # Shared RUOD experiment recipe for fair cross-library comparison
 # pretrained = yes
 # augmentation = explicit and limited
+# the name here is old and should be updated to reflect the new recipe, but we want to keep it for now to avoid breaking existing links to results
 
 classes = (
     'holothurian',
@@ -43,12 +44,13 @@ test_pipeline = [
     )
 ]
 
-# Heavy models like DetectoRS may not fit large per-step batches.
-# Use batch_size=1 and accumulate gradients to effective batch size 64.
+
 train_dataloader = dict(
     batch_size=32,
     num_workers=8,
     persistent_workers=True,
+    pin_memory=True,
+    prefetch_factor=4,
     sampler=dict(type='DefaultSampler', shuffle=True),
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
@@ -64,8 +66,8 @@ train_dataloader = dict(
 )
 
 val_dataloader = dict(
-    batch_size=1,
-    num_workers=2,
+    batch_size=8,
+    num_workers=4,
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
@@ -115,26 +117,14 @@ test_evaluator = dict(
     backend_args=backend_args,
 )
 
-# Match your Ultralytics-visible settings
-# epochs=120, batch=64, optimizer=SGD, lr0=0.01, momentum=0.937,
-# weight_decay=0.0005, amp=False, workers=2, seed=0, deterministic=False
+
 optim_wrapper = dict(
-    type='OptimWrapper',
-    optimizer=dict(
-        type='AdamW',
-        lr=1e-4,
-        weight_decay=1e-4,
-    ),
+    type='AmpOptimWrapper',
+    optimizer=dict(type='AdamW', lr=1e-4, weight_decay=1e-4),
     clip_grad=dict(max_norm=0.1, norm_type=2),
-    paramwise_cfg=dict(
-        custom_keys={'backbone': dict(lr_mult=0.1, decay_mult=1.0)}
-    ),
+    paramwise_cfg=dict(custom_keys={'backbone': dict(lr_mult=0.1)}),
 )
 
-# Shared simple schedule:
-# - 3 epoch warmup
-# - linear decay to 1% of initial LR by epoch 120
-# This is explicit and avoids silently inheriting MMDetection's 1x schedule.
 param_scheduler = [
     dict(
         type='LinearLR',
@@ -144,26 +134,22 @@ param_scheduler = [
         end=3,
         by_epoch=True),
     dict(
-        type='LinearMomentum',
-        start_factor=0.8 / 0.937,
-        end_factor=1.0,
-        begin=0,
-        end=3,
-        by_epoch=True),
-    dict(
         type='LinearLR',
         start_factor=1.0,
         end_factor=0.01,
         begin=3,
-        end=120,
+        end=80,
         by_epoch=True),
 ]
 
-train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=120, val_interval=1)
+
+
+
+train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=80, val_interval=2)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
 randomness = dict(seed=0, deterministic=False)
 
-auto_scale_lr = dict(enable=False, base_batch_size=64)
+auto_scale_lr = dict(enable=False, base_batch_size=16)
 
