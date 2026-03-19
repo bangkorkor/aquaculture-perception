@@ -76,3 +76,11 @@ AquaYOLOs_UATD_120e,configs/models/aquayolos.yaml,,../data-processing/sonar/UATD
 AquaYOLOm_UATD_120e,configs/models/aquayolom.yaml,,../data-processing/sonar/UATD/uatd.yaml,uatd_120e_batch64,outputs/training/UATD,aquayolom_uatd_120e
 
 
+--------- solaqua_fish ---------
+yolov8n_solaqua_fish_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov8n_solaqua_fish_120e_fair
+yolov8s_solaqua_fish_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov8s_solaqua_fish_120e_fair
+yolov11n_solaqua_fish_120e_fair,yolo11n.pt,yolo11n.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov11n_solaqua_fish_120e_fair
+yolov11s_solaqua_fish_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov11s_solaqua_fish_120e_fair
+yolov26n_solaqua_fish_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov26n_solaqua_fish_120e_fair
+yolov26s_solaqua_fish_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov26s_solaqua_fish_120e_fair
+rt_detr_solaqua_fish_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,rt_detr_solaqua_fish_120e_fair
