@@ -1,6 +1,6 @@
 _base_ = [
     '../_base_/default_runtime.py',
-    './_base_/ruod_120e_batch64_shared_pretrained.py',
+    './_base_/ruod_transformer_schedule.py',
 ]
 
 num_classes = _base_.num_classes
