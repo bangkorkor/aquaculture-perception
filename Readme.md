@@ -98,7 +98,7 @@ Do the testing:
 ```bash
 python tools/test.py \
   configs/ruod/detr_r50_ruod_120e_pretrained.py \
-  ../runs/mmdet/detr_r50_ruod_120e_pretrained/best_coco_bbox_mAP_epoch_62.pth
+  ../runs/mmdet/ruod/detr_r50_ruod_120e_pretrained/best_coco_bbox_mAP_epoch_62.pth
 ```
 
 # RunPod
