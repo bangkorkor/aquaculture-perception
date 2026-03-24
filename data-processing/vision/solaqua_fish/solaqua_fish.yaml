@@ -3,6 +3,6 @@ train: /workspace/aquaculture-perception/data-processing/vision/solaqua_fish/pro
 val:   /workspace/aquaculture-perception/data-processing/vision/solaqua_fish/processed/split_yolo/images/val
 test:  /workspace/aquaculture-perception/data-processing/vision/solaqua_fish/processed/split_yolo/images/test
 
-# RUOD has 10 classes
+
 names:
   - fish
