@@ -1,18 +1,18 @@
 auto_scale_lr = dict(base_batch_size=16, enable=False)
 backend_args = None
 classes = (
-    'holothurian',
-    'echinus',
-    'scallop',
-    'starfish',
-    'fish',
-    'coral',
-    'diver',
-    'cuttlefish',
-    'turtle',
-    'jellyfish',
+    'human-body',
+    'ball',
+    'circle-cage',
+    'square-cage',
+    'tyre',
+    'metal-bucket',
+    'cube',
+    'cylinder',
+    'plane',
+    'rov',
 )
-data_root = '../data-processing/vision/RUOD/processed/'
+data_root = '../data-processing/sonar/UATD/processed/'
 dataset_type = 'CocoDataset'
 default_hooks = dict(
     checkpoint=dict(
@@ -33,21 +33,21 @@ env_cfg = dict(
     dist_cfg=dict(backend='nccl'),
     mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
 launcher = 'none'
-load_from = '../runs/mmdet/ruod/faster_rcnn_r50_fpn_ruod_80e_pretrained/best_coco_bbox_mAP_epoch_56.pth'
+load_from = 'https://download.openmmlab.com/mmdetection/v2.0/dynamic_rcnn/dynamic_rcnn_r50_fpn_1x/dynamic_rcnn_r50_fpn_1x-62a3f276.pth'
 log_level = 'INFO'
 log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
 metainfo = dict(
     classes=(
-        'holothurian',
-        'echinus',
-        'scallop',
-        'starfish',
-        'fish',
-        'coral',
-        'diver',
-        'cuttlefish',
-        'turtle',
-        'jellyfish',
+        'human-body',
+        'ball',
+        'circle-cage',
+        'square-cage',
+        'tyre',
+        'metal-bucket',
+        'cube',
+        'cylinder',
+        'plane',
+        'rov',
     ))
 model = dict(
     backbone=dict(
@@ -107,7 +107,7 @@ model = dict(
                 type='DeltaXYWHBBoxCoder'),
             fc_out_channels=1024,
             in_channels=256,
-            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_bbox=dict(beta=1.0, loss_weight=1.0, type='SmoothL1Loss'),
             loss_cls=dict(
                 loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=False),
             num_classes=10,
@@ -124,7 +124,7 @@ model = dict(
             out_channels=256,
             roi_layer=dict(output_size=7, sampling_ratio=0, type='RoIAlign'),
             type='SingleRoIExtractor'),
-        type='StandardRoIHead'),
+        type='DynamicRoIHead'),
     rpn_head=dict(
         anchor_generator=dict(
             ratios=[
@@ -171,7 +171,7 @@ model = dict(
         rpn=dict(
             max_per_img=1000,
             min_bbox_size=0,
-            nms=dict(iou_threshold=0.7, type='nms'),
+            nms=dict(iou_threshold=0.85, type='nms'),
             nms_pre=1000)),
     train_cfg=dict(
         rcnn=dict(
@@ -183,6 +183,12 @@ model = dict(
                 pos_iou_thr=0.5,
                 type='MaxIoUAssigner'),
             debug=False,
+            dynamic_rcnn=dict(
+                beta_topk=10,
+                initial_beta=1.0,
+                initial_iou=0.4,
+                iou_topk=75,
+                update_iter_interval=100),
             pos_weight=-1,
             sampler=dict(
                 add_gt_as_proposals=True,
@@ -210,7 +216,7 @@ model = dict(
         rpn_proposal=dict(
             max_per_img=1000,
             min_bbox_size=0,
-            nms=dict(iou_threshold=0.7, type='nms'),
+            nms=dict(iou_threshold=0.85, type='nms'),
             nms_pre=2000)),
     type='FasterRCNN')
 num_classes = 10
@@ -240,19 +246,19 @@ test_dataloader = dict(
         ann_file='annotations/test.json',
         backend_args=None,
         data_prefix=dict(img='images/test/'),
-        data_root='../data-processing/vision/RUOD/processed/',
+        data_root='../data-processing/sonar/UATD/processed/',
         metainfo=dict(
             classes=(
-                'holothurian',
-                'echinus',
-                'scallop',
-                'starfish',
-                'fish',
-                'coral',
-                'diver',
-                'cuttlefish',
-                'turtle',
-                'jellyfish',
+                'human-body',
+                'ball',
+                'circle-cage',
+                'square-cage',
+                'tyre',
+                'metal-bucket',
+                'cube',
+                'cylinder',
+                'plane',
+                'rov',
             )),
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
@@ -278,7 +284,7 @@ test_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 test_evaluator = dict(
-    ann_file='../data-processing/vision/RUOD/processed/annotations/test.json',
+    ann_file='../data-processing/sonar/UATD/processed/annotations/test.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
@@ -308,20 +314,20 @@ train_dataloader = dict(
         ann_file='annotations/train.json',
         backend_args=None,
         data_prefix=dict(img='images/train/'),
-        data_root='../data-processing/vision/RUOD/processed/',
+        data_root='../data-processing/sonar/UATD/processed/',
         filter_cfg=dict(filter_empty_gt=False),
         metainfo=dict(
             classes=(
-                'holothurian',
-                'echinus',
-                'scallop',
-                'starfish',
-                'fish',
-                'coral',
-                'diver',
-                'cuttlefish',
-                'turtle',
-                'jellyfish',
+                'human-body',
+                'ball',
+                'circle-cage',
+                'square-cage',
+                'tyre',
+                'metal-bucket',
+                'cube',
+                'cylinder',
+                'plane',
+                'rov',
             )),
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
@@ -356,19 +362,19 @@ val_dataloader = dict(
         ann_file='annotations/val.json',
         backend_args=None,
         data_prefix=dict(img='images/val/'),
-        data_root='../data-processing/vision/RUOD/processed/',
+        data_root='../data-processing/sonar/UATD/processed/',
         metainfo=dict(
             classes=(
-                'holothurian',
-                'echinus',
-                'scallop',
-                'starfish',
-                'fish',
-                'coral',
-                'diver',
-                'cuttlefish',
-                'turtle',
-                'jellyfish',
+                'human-body',
+                'ball',
+                'circle-cage',
+                'square-cage',
+                'tyre',
+                'metal-bucket',
+                'cube',
+                'cylinder',
+                'plane',
+                'rov',
             )),
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
@@ -394,7 +400,7 @@ val_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 val_evaluator = dict(
-    ann_file='../data-processing/vision/RUOD/processed/annotations/val.json',
+    ann_file='../data-processing/sonar/UATD/processed/annotations/val.json',
     backend_args=None,
     format_only=False,
     metric='bbox',
@@ -408,4 +414,4 @@ visualizer = dict(
     vis_backends=[
         dict(type='LocalVisBackend'),
     ])
-work_dir = '../runs/mmdet/faster_rcnn_r50_fpn_ruod_80e_pretrained'
+work_dir = '../runs/mmdet/uatd/dynamic_rcnn_r50_fpn_uatd_80e_pretrained'
