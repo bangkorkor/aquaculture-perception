@@ -156,4 +156,4 @@ model = dict(
 
 load_from = 'https://download.openmmlab.com/mmdetection/v2.0/dynamic_rcnn/dynamic_rcnn_r50_fpn_1x/dynamic_rcnn_r50_fpn_1x-62a3f276.pth'
 
-work_dir = '../runs/mmdet/dynamic_rcnn_r50_fpn_ruod_80e_pretrained'
+work_dir = '../runs/mmdet/ruod/dynamic_rcnn_r50_fpn_ruod_80e_pretrained'
