@@ -84,3 +84,13 @@ yolov11s_solaqua_fish_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/vision/
 yolov26n_solaqua_fish_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov26n_solaqua_fish_120e_fair
 yolov26s_solaqua_fish_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,yolov26s_solaqua_fish_120e_fair
 rt_detr_solaqua_fish_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_120e_fair,outputs/training/solaqua_fish,rt_detr_solaqua_fish_120e_fair
+
+
+--------- net_fish_sonar SONAR ---------
+yolov8n_net_fish_sonar_120e_fair,yolov8n.pt,yolov8n.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov8n_net_fish_sonar_120e_fair
+yolov8s_net_fish_sonar_120e_fair,yolov8s.pt,yolov8s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov8s_net_fish_sonar_120e_fair
+yolov11n_net_fish_sonar_120e_fair,yolo11n.pt,yolo11n.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov11n_net_fish_sonar_120e_fair
+yolov11s_net_fish_sonar_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov11s_net_fish_sonar_120e_fair
+yolov26n_net_fish_sonar_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov26n_net_fish_sonar_120e_fair
+yolov26s_net_fish_sonar_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov26s_net_fish_sonar_120e_fair
+rt_detr_net_fish_sonar_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,rt_detr_net_fish_sonar_120e_fair
