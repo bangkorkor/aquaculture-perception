@@ -108,13 +108,3 @@ python tools/test.py \
   -e "ssh -p 12211 -i ~/.ssh/id_ed25519 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o TCPKeepAlive=yes -o Compression=no" \
   UATD_Training.zip root@157.157.221.29:/workspace/
 ```
-
-
-
-python train.py --id yolov8n_net_fish_sonar_120e_fair
-python train.py --id yolov8s_net_fish_sonar_120e_fair
-python train.py --id yolov11n_net_fish_sonar_120e_fair
-python train.py --id yolov11s_net_fish_sonar_120e_fair
-python train.py --id yolov26n_net_fish_sonar_120e_fair 
-python train.py --id yolov26s_net_fish_sonar_120e_fair
-python train.py --id rt_detr_net_fish_sonar_120e_fair

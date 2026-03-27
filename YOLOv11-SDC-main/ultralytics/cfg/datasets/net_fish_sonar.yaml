@@ -1,0 +1,9 @@
+
+train: /workspace/aquaculture-perception/data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/images/train
+val:   /workspace/aquaculture-perception/data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/images/val
+test:  /workspace/aquaculture-perception/data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/images/test
+
+# RUOD has 10 classes
+names:
+  - fish
+  - net

@@ -8,7 +8,7 @@ if __name__ == '__main__':
     model = YOLO('ultralytics/cfg/models/11/yolo11s-SDC.yaml')
 
     model.train(
-        data='/cluster/home/henrban/aquaculture-perception/YOLOv11-SDC-main/ultralytics/cfg/datasets/UATD.yaml',
+        data='/workspace/aquaculture-perception/YOLOv11-SDC-main/ultralytics/cfg/datasets/net_fish_sonar.yaml',
 
         epochs=120,
         imgsz=640,
@@ -52,5 +52,5 @@ if __name__ == '__main__':
 
         rect=False,
         project='runs/SDC',
-        name='yolov11-sdc-uatd_120e_batch64_fair',
+        name='yolov11-sdc-net_fish_sonar_120e_batch64_fair',
     )

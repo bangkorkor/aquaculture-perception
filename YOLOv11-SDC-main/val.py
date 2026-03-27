@@ -11,8 +11,8 @@ if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parent
 
     # Adjust only these two if your run name/location is different
-    weights_path = ROOT / "runsD" / "SDC" / "yolov11-sdc-uatd_120e_batch64_fair2" / "weights" / "best.pt"
-    data_yaml = ROOT / "ultralytics" / "cfg" / "datasets" / "UATD.yaml"
+    weights_path = ROOT / "runsD" / "SDC" / "yolov11-sdc-net_fish_sonar_120e_batch64_fair3" / "weights" / "best.pt"
+    data_yaml = ROOT / "ultralytics" / "cfg" / "datasets" / "net_fish_sonar.yaml"
 
     model = YOLO(str(weights_path))
 
@@ -24,8 +24,8 @@ if __name__ == "__main__":
         iou=0.45,
         conf=0.25,
         plots=False,
-        project=str(ROOT / "outputsAAA" / "evaluation" / "UATD"),
-        name="EVAL_yolov11s_uatd_120e_fair",
+        project=str(ROOT / "outputsAAA" / "evaluation" / "net_fish_sonar"),
+        name="EVAL_yolov11s_net_fish_sonar_120e_fair",
         exist_ok=True,
     )
 
