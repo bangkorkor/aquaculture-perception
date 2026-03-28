@@ -10,7 +10,7 @@ num_classes = len(classes)
 metainfo = dict(classes=classes)
 
 dataset_type = 'CocoDataset'
-data_root = '../data-processing/sonar/net_fish_sonar/processed/'
+data_root = '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/'
 backend_args = None
 
 # Explicit, limited augmentation recipe:

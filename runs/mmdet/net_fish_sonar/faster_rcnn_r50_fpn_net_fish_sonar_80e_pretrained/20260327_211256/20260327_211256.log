@@ -1,0 +1,1484 @@
+2026/03/27 21:13:01 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.11.10 (main, Sep  7 2024, 18:35:41) [GCC 11.4.0]
+    CUDA available: True
+    MUSA available: False
+    numpy_random_seed: 0
+    GPU 0: NVIDIA A100-SXM4-80GB
+    CUDA_HOME: /usr/local/cuda
+    NVCC: Cuda compilation tools, release 12.4, V12.4.131
+    GCC: x86_64-linux-gnu-gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+    PyTorch: 2.1.0+cu121
+    PyTorch compiling details: PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201703
+  - Intel(R) oneAPI Math Kernel Library Version 2022.2-Product Build 20220804 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v3.1.1 (Git Hash 64f6bcbcbab628e96f33a62c3e975f8535a7bde4)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 12.1
+  - NVCC architecture flags: -gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_90,code=sm_90
+  - CuDNN 8.9.2
+  - Magma 2.6.1
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=12.1, CUDNN_VERSION=8.9.2, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -D_GLIBCXX_USE_CXX11_ABI=0 -fabi-version=11 -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=old-style-cast -Wno-invalid-partial-specialization -Wno-unused-private-field -Wno-aligned-allocation-unavailable -Wno-missing-braces -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Werror=cast-function-type -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_DISABLE_GPU_ASSERTS=ON, TORCH_VERSION=2.1.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=1, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, 
+
+    TorchVision: 0.16.0+cu121
+    OpenCV: 4.11.0
+    MMEngine: 0.10.7
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 0
+    deterministic: False
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2026/03/27 21:13:01 - mmengine - INFO - Config:
+auto_scale_lr = dict(base_batch_size=16, enable=False)
+backend_args = None
+classes = (
+    'fish',
+    'net',
+)
+data_root = '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/'
+dataset_type = 'CocoDataset'
+default_hooks = dict(
+    checkpoint=dict(
+        interval=-1,
+        max_keep_ckpts=1,
+        rule='greater',
+        save_best='coco/bbox_mAP',
+        save_last=True,
+        type='CheckpointHook'),
+    logger=dict(interval=50, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(type='DetVisualizationHook'))
+default_scope = 'mmdet'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+launcher = 'none'
+load_from = None
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
+metainfo = dict(classes=(
+    'fish',
+    'net',
+))
+model = dict(
+    backbone=dict(
+        depth=50,
+        frozen_stages=1,
+        init_cfg=dict(checkpoint='torchvision://resnet50', type='Pretrained'),
+        norm_cfg=dict(requires_grad=True, type='BN'),
+        norm_eval=True,
+        num_stages=4,
+        out_indices=(
+            0,
+            1,
+            2,
+            3,
+        ),
+        style='pytorch',
+        type='ResNet'),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=32,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor'),
+    neck=dict(
+        in_channels=[
+            256,
+            512,
+            1024,
+            2048,
+        ],
+        num_outs=5,
+        out_channels=256,
+        type='FPN'),
+    roi_head=dict(
+        bbox_head=dict(
+            bbox_coder=dict(
+                target_means=[
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+                target_stds=[
+                    0.1,
+                    0.1,
+                    0.2,
+                    0.2,
+                ],
+                type='DeltaXYWHBBoxCoder'),
+            fc_out_channels=1024,
+            in_channels=256,
+            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_cls=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=False),
+            num_classes=2,
+            reg_class_agnostic=False,
+            roi_feat_size=7,
+            type='Shared2FCBBoxHead'),
+        bbox_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=7, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        type='StandardRoIHead'),
+    rpn_head=dict(
+        anchor_generator=dict(
+            ratios=[
+                0.5,
+                1.0,
+                2.0,
+            ],
+            scales=[
+                8,
+            ],
+            strides=[
+                4,
+                8,
+                16,
+                32,
+                64,
+            ],
+            type='AnchorGenerator'),
+        bbox_coder=dict(
+            target_means=[
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ],
+            target_stds=[
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+            ],
+            type='DeltaXYWHBBoxCoder'),
+        feat_channels=256,
+        in_channels=256,
+        loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+        loss_cls=dict(
+            loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=True),
+        type='RPNHead'),
+    test_cfg=dict(
+        rcnn=dict(
+            max_per_img=100,
+            nms=dict(iou_threshold=0.5, type='nms'),
+            score_thr=0.05),
+        rpn=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=1000)),
+    train_cfg=dict(
+        rcnn=dict(
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=False,
+                min_pos_iou=0.5,
+                neg_iou_thr=0.5,
+                pos_iou_thr=0.5,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=True,
+                neg_pos_ub=-1,
+                num=512,
+                pos_fraction=0.25,
+                type='RandomSampler')),
+        rpn=dict(
+            allowed_border=-1,
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.3,
+                neg_iou_thr=0.3,
+                pos_iou_thr=0.7,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=False,
+                neg_pos_ub=-1,
+                num=256,
+                pos_fraction=0.5,
+                type='RandomSampler')),
+        rpn_proposal=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=2000)),
+    type='FasterRCNN')
+num_classes = 2
+optim_wrapper = dict(
+    optimizer=dict(lr=0.02, momentum=0.9, type='SGD', weight_decay=0.0001),
+    type='OptimWrapper')
+param_scheduler = [
+    dict(
+        begin=0, by_epoch=False, end=500, start_factor=0.001, type='LinearLR'),
+    dict(
+        begin=0,
+        by_epoch=True,
+        end=80,
+        gamma=0.1,
+        milestones=[
+            53,
+            73,
+        ],
+        type='MultiStepLR'),
+]
+randomness = dict(deterministic=False, seed=0)
+resume = False
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='annotations/test.json',
+        backend_args=None,
+        data_prefix=dict(img='images/test/'),
+        data_root=
+        '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/',
+        metainfo=dict(classes=(
+            'fish',
+            'net',
+        )),
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(
+    ann_file=
+    '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/annotations/test.json',
+    backend_args=None,
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric')
+test_pipeline = [
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        640,
+        640,
+    ), type='Resize'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        meta_keys=(
+            'img_id',
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackDetInputs'),
+]
+train_cfg = dict(max_epochs=80, type='EpochBasedTrainLoop', val_interval=2)
+train_dataloader = dict(
+    batch_sampler=dict(type='AspectRatioBatchSampler'),
+    batch_size=32,
+    dataset=dict(
+        ann_file='annotations/train.json',
+        backend_args=None,
+        data_prefix=dict(img='images/train/'),
+        data_root=
+        '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/',
+        filter_cfg=dict(filter_empty_gt=False),
+        metainfo=dict(classes=(
+            'fish',
+            'net',
+        )),
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(prob=0.5, type='RandomFlip'),
+            dict(type='PackDetInputs'),
+        ],
+        type='CocoDataset'),
+    num_workers=8,
+    persistent_workers=True,
+    pin_memory=True,
+    prefetch_factor=4,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(keep_ratio=True, scale=(
+        640,
+        640,
+    ), type='Resize'),
+    dict(prob=0.5, type='RandomFlip'),
+    dict(type='PackDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=4,
+    dataset=dict(
+        ann_file='annotations/val.json',
+        backend_args=None,
+        data_prefix=dict(img='images/val/'),
+        data_root=
+        '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/',
+        metainfo=dict(classes=(
+            'fish',
+            'net',
+        )),
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(
+    ann_file=
+    '../data-processing/sonar/net_fish_sonar/processed/split_yolo_fish_net/annotations/val.json',
+    backend_args=None,
+    format_only=False,
+    metric='bbox',
+    type='CocoMetric')
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='DetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+    ])
+work_dir = '../runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained'
+
+2026/03/27 21:13:04 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2026/03/27 21:13:04 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DetVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2026/03/27 21:13:05 - mmengine - INFO - load model from: torchvision://resnet50
+2026/03/27 21:13:05 - mmengine - INFO - Loads checkpoint by torchvision backend from path: torchvision://resnet50
+2026/03/27 21:13:05 - mmengine - WARNING - The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: fc.weight, fc.bias
+
+Name of parameter - Initialization information
+
+backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from torchvision://resnet50 
+
+neck.lateral_convs.0.conv.weight - torch.Size([256, 256, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.lateral_convs.1.conv.weight - torch.Size([256, 512, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.lateral_convs.2.conv.weight - torch.Size([256, 1024, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.lateral_convs.3.conv.weight - torch.Size([256, 2048, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.fpn_convs.0.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.fpn_convs.1.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.fpn_convs.2.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+neck.fpn_convs.3.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of FasterRCNN  
+
+rpn_head.rpn_conv.weight - torch.Size([256, 256, 3, 3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_conv.bias - torch.Size([256]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_cls.weight - torch.Size([3, 256, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_cls.bias - torch.Size([3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_reg.weight - torch.Size([12, 256, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+rpn_head.rpn_reg.bias - torch.Size([12]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.bbox_head.fc_cls.weight - torch.Size([3, 1024]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.bbox_head.fc_cls.bias - torch.Size([3]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+roi_head.bbox_head.fc_reg.weight - torch.Size([8, 1024]): 
+NormalInit: mean=0, std=0.001, bias=0 
+
+roi_head.bbox_head.fc_reg.bias - torch.Size([8]): 
+NormalInit: mean=0, std=0.001, bias=0 
+
+roi_head.bbox_head.shared_fcs.0.weight - torch.Size([1024, 12544]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+roi_head.bbox_head.shared_fcs.0.bias - torch.Size([1024]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+roi_head.bbox_head.shared_fcs.1.weight - torch.Size([1024, 1024]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+roi_head.bbox_head.shared_fcs.1.bias - torch.Size([1024]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+2026/03/27 21:13:05 - mmengine - WARNING - "FileClient" will be deprecated in future. Please use io functions in https://mmengine.readthedocs.io/en/latest/api/fileio.html#file-io
+2026/03/27 21:13:05 - mmengine - WARNING - "HardDiskBackend" is the alias of "LocalBackend" and the former will be deprecated in future.
+2026/03/27 21:13:05 - mmengine - INFO - Checkpoints will be saved to /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained.
+2026/03/27 21:13:31 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:13:32 - mmengine - INFO - Epoch(train)  [1][38/38]  lr: 1.5015e-03  eta: 0:35:02  time: 0.7004  data_time: 0.0210  memory: 11428  loss: 0.6290  loss_rpn_cls: 0.3947  loss_rpn_bbox: 0.0431  loss_cls: 0.1802  acc: 99.1455  loss_bbox: 0.0110
+2026/03/27 21:13:55 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:13:55 - mmengine - INFO - Epoch(train)  [2][38/38]  lr: 3.0230e-03  eta: 0:32:21  time: 0.6032  data_time: 0.0107  memory: 11336  loss: 0.1880  loss_rpn_cls: 0.0613  loss_rpn_bbox: 0.0275  loss_cls: 0.0668  acc: 98.6938  loss_bbox: 0.0324
+2026/03/27 21:13:57 - mmengine - INFO - Epoch(val)  [2][ 50/100]    eta: 0:00:02  time: 0.0553  data_time: 0.0086  memory: 808  
+2026/03/27 21:14:00 - mmengine - INFO - Epoch(val)  [2][100/100]    eta: 0:00:00  time: 0.0486  data_time: 0.0045  memory: 808  
+2026/03/27 21:14:00 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:14:00 - mmengine - INFO - bbox_mAP_copypaste: 0.019 0.078 0.001 0.000 0.042 0.042
+2026/03/27 21:14:00 - mmengine - INFO - Epoch(val) [2][100/100]    coco/bbox_mAP: 0.0190  coco/bbox_mAP_50: 0.0780  coco/bbox_mAP_75: 0.0010  coco/bbox_mAP_s: 0.0000  coco/bbox_mAP_m: 0.0420  coco/bbox_mAP_l: 0.0420  data_time: 0.0065  time: 0.0520
+2026/03/27 21:14:01 - mmengine - INFO - The best checkpoint with 0.0190 coco/bbox_mAP at 2 epoch is saved to best_coco_bbox_mAP_epoch_2.pth.
+2026/03/27 21:14:26 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:14:26 - mmengine - INFO - Epoch(train)  [3][38/38]  lr: 4.5445e-03  eta: 0:31:56  time: 0.6381  data_time: 0.0076  memory: 11336  loss: 0.1592  loss_rpn_cls: 0.0332  loss_rpn_bbox: 0.0235  loss_cls: 0.0530  acc: 98.2544  loss_bbox: 0.0495
+2026/03/27 21:14:49 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:14:49 - mmengine - INFO - Epoch(train)  [4][38/38]  lr: 6.0661e-03  eta: 0:31:02  time: 0.6137  data_time: 0.0084  memory: 11336  loss: 0.1400  loss_rpn_cls: 0.0178  loss_rpn_bbox: 0.0206  loss_cls: 0.0438  acc: 98.6572  loss_bbox: 0.0577
+2026/03/27 21:14:52 - mmengine - INFO - Epoch(val)  [4][ 50/100]    eta: 0:00:02  time: 0.0485  data_time: 0.0057  memory: 809  
+2026/03/27 21:14:54 - mmengine - INFO - Epoch(val)  [4][100/100]    eta: 0:00:00  time: 0.0452  data_time: 0.0040  memory: 809  
+2026/03/27 21:14:54 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:14:55 - mmengine - INFO - bbox_mAP_copypaste: 0.086 0.258 0.023 0.014 0.071 0.222
+2026/03/27 21:14:55 - mmengine - INFO - Epoch(val) [4][100/100]    coco/bbox_mAP: 0.0860  coco/bbox_mAP_50: 0.2580  coco/bbox_mAP_75: 0.0230  coco/bbox_mAP_s: 0.0140  coco/bbox_mAP_m: 0.0710  coco/bbox_mAP_l: 0.2220  data_time: 0.0049  time: 0.0468
+2026/03/27 21:14:55 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_2.pth is removed
+2026/03/27 21:14:56 - mmengine - INFO - The best checkpoint with 0.0860 coco/bbox_mAP at 4 epoch is saved to best_coco_bbox_mAP_epoch_4.pth.
+2026/03/27 21:15:18 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:15:18 - mmengine - INFO - Epoch(train)  [5][38/38]  lr: 7.5876e-03  eta: 0:30:13  time: 0.5935  data_time: 0.0076  memory: 11336  loss: 0.1292  loss_rpn_cls: 0.0117  loss_rpn_bbox: 0.0186  loss_cls: 0.0394  acc: 98.9502  loss_bbox: 0.0595
+2026/03/27 21:15:41 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:15:41 - mmengine - INFO - Epoch(train)  [6][38/38]  lr: 9.1091e-03  eta: 0:29:31  time: 0.5877  data_time: 0.0089  memory: 11336  loss: 0.1176  loss_rpn_cls: 0.0100  loss_rpn_bbox: 0.0167  loss_cls: 0.0349  acc: 98.5352  loss_bbox: 0.0559
+2026/03/27 21:15:44 - mmengine - INFO - Epoch(val)  [6][ 50/100]    eta: 0:00:02  time: 0.0493  data_time: 0.0054  memory: 809  
+2026/03/27 21:15:46 - mmengine - INFO - Epoch(val)  [6][100/100]    eta: 0:00:00  time: 0.0476  data_time: 0.0045  memory: 809  
+2026/03/27 21:15:46 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:15:47 - mmengine - INFO - bbox_mAP_copypaste: 0.140 0.409 0.034 0.021 0.112 0.309
+2026/03/27 21:15:47 - mmengine - INFO - Epoch(val) [6][100/100]    coco/bbox_mAP: 0.1400  coco/bbox_mAP_50: 0.4090  coco/bbox_mAP_75: 0.0340  coco/bbox_mAP_s: 0.0210  coco/bbox_mAP_m: 0.1120  coco/bbox_mAP_l: 0.3090  data_time: 0.0049  time: 0.0484
+2026/03/27 21:15:47 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_4.pth is removed
+2026/03/27 21:15:48 - mmengine - INFO - The best checkpoint with 0.1400 coco/bbox_mAP at 6 epoch is saved to best_coco_bbox_mAP_epoch_6.pth.
+2026/03/27 21:16:10 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:16:10 - mmengine - INFO - Epoch(train)  [7][38/38]  lr: 1.0631e-02  eta: 0:28:55  time: 0.5884  data_time: 0.0072  memory: 11336  loss: 0.1092  loss_rpn_cls: 0.0087  loss_rpn_bbox: 0.0174  loss_cls: 0.0307  acc: 98.3765  loss_bbox: 0.0523
+2026/03/27 21:16:33 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:16:33 - mmengine - INFO - Epoch(train)  [8][38/38]  lr: 1.2152e-02  eta: 0:28:22  time: 0.5894  data_time: 0.0083  memory: 11336  loss: 0.1032  loss_rpn_cls: 0.0078  loss_rpn_bbox: 0.0151  loss_cls: 0.0287  acc: 98.4619  loss_bbox: 0.0517
+2026/03/27 21:16:36 - mmengine - INFO - Epoch(val)  [8][ 50/100]    eta: 0:00:02  time: 0.0493  data_time: 0.0055  memory: 809  
+2026/03/27 21:16:38 - mmengine - INFO - Epoch(val)  [8][100/100]    eta: 0:00:00  time: 0.0470  data_time: 0.0043  memory: 808  
+2026/03/27 21:16:38 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:16:38 - mmengine - INFO - bbox_mAP_copypaste: 0.204 0.527 0.075 0.068 0.179 0.416
+2026/03/27 21:16:38 - mmengine - INFO - Epoch(val) [8][100/100]    coco/bbox_mAP: 0.2040  coco/bbox_mAP_50: 0.5270  coco/bbox_mAP_75: 0.0750  coco/bbox_mAP_s: 0.0680  coco/bbox_mAP_m: 0.1790  coco/bbox_mAP_l: 0.4160  data_time: 0.0049  time: 0.0481
+2026/03/27 21:16:38 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_6.pth is removed
+2026/03/27 21:16:39 - mmengine - INFO - The best checkpoint with 0.2040 coco/bbox_mAP at 8 epoch is saved to best_coco_bbox_mAP_epoch_8.pth.
+2026/03/27 21:17:02 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:17:02 - mmengine - INFO - Epoch(train)  [9][38/38]  lr: 1.3674e-02  eta: 0:27:54  time: 0.5944  data_time: 0.0135  memory: 11336  loss: 0.0980  loss_rpn_cls: 0.0068  loss_rpn_bbox: 0.0146  loss_cls: 0.0262  acc: 97.8760  loss_bbox: 0.0504
+2026/03/27 21:17:25 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:17:25 - mmengine - INFO - Epoch(train) [10][38/38]  lr: 1.5195e-02  eta: 0:27:24  time: 0.5906  data_time: 0.0099  memory: 11336  loss: 0.0914  loss_rpn_cls: 0.0063  loss_rpn_bbox: 0.0126  loss_cls: 0.0245  acc: 98.7671  loss_bbox: 0.0481
+2026/03/27 21:17:28 - mmengine - INFO - Epoch(val) [10][ 50/100]    eta: 0:00:02  time: 0.0499  data_time: 0.0059  memory: 808  
+2026/03/27 21:17:30 - mmengine - INFO - Epoch(val) [10][100/100]    eta: 0:00:00  time: 0.0477  data_time: 0.0043  memory: 808  
+2026/03/27 21:17:30 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:17:30 - mmengine - INFO - bbox_mAP_copypaste: 0.235 0.526 0.151 0.005 0.215 0.488
+2026/03/27 21:17:30 - mmengine - INFO - Epoch(val) [10][100/100]    coco/bbox_mAP: 0.2350  coco/bbox_mAP_50: 0.5260  coco/bbox_mAP_75: 0.1510  coco/bbox_mAP_s: 0.0050  coco/bbox_mAP_m: 0.2150  coco/bbox_mAP_l: 0.4880  data_time: 0.0051  time: 0.0488
+2026/03/27 21:17:31 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_8.pth is removed
+2026/03/27 21:17:32 - mmengine - INFO - The best checkpoint with 0.2350 coco/bbox_mAP at 10 epoch is saved to best_coco_bbox_mAP_epoch_10.pth.
+2026/03/27 21:17:54 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:17:54 - mmengine - INFO - Epoch(train) [11][38/38]  lr: 1.6717e-02  eta: 0:26:56  time: 0.5879  data_time: 0.0072  memory: 11336  loss: 0.0892  loss_rpn_cls: 0.0057  loss_rpn_bbox: 0.0127  loss_cls: 0.0239  acc: 99.2920  loss_bbox: 0.0468
+2026/03/27 21:18:17 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:18:17 - mmengine - INFO - Epoch(train) [12][38/38]  lr: 1.8238e-02  eta: 0:26:29  time: 0.5875  data_time: 0.0085  memory: 11336  loss: 0.0878  loss_rpn_cls: 0.0054  loss_rpn_bbox: 0.0132  loss_cls: 0.0224  acc: 99.2920  loss_bbox: 0.0468
+2026/03/27 21:18:20 - mmengine - INFO - Epoch(val) [12][ 50/100]    eta: 0:00:02  time: 0.0495  data_time: 0.0056  memory: 807  
+2026/03/27 21:18:22 - mmengine - INFO - Epoch(val) [12][100/100]    eta: 0:00:00  time: 0.0472  data_time: 0.0043  memory: 808  
+2026/03/27 21:18:22 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:18:22 - mmengine - INFO - bbox_mAP_copypaste: 0.265 0.621 0.157 0.119 0.301 0.444
+2026/03/27 21:18:22 - mmengine - INFO - Epoch(val) [12][100/100]    coco/bbox_mAP: 0.2650  coco/bbox_mAP_50: 0.6210  coco/bbox_mAP_75: 0.1570  coco/bbox_mAP_s: 0.1190  coco/bbox_mAP_m: 0.3010  coco/bbox_mAP_l: 0.4440  data_time: 0.0049  time: 0.0483
+2026/03/27 21:18:22 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_10.pth is removed
+2026/03/27 21:18:23 - mmengine - INFO - The best checkpoint with 0.2650 coco/bbox_mAP at 12 epoch is saved to best_coco_bbox_mAP_epoch_12.pth.
+2026/03/27 21:18:47 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:18:47 - mmengine - INFO - Epoch(train) [13][38/38]  lr: 1.9760e-02  eta: 0:26:08  time: 0.6110  data_time: 0.0074  memory: 11336  loss: 0.0864  loss_rpn_cls: 0.0054  loss_rpn_bbox: 0.0127  loss_cls: 0.0223  acc: 98.6572  loss_bbox: 0.0460
+2026/03/27 21:19:12 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:19:12 - mmengine - INFO - Epoch(train) [14][38/38]  lr: 2.0000e-02  eta: 0:25:49  time: 0.6269  data_time: 0.0105  memory: 11336  loss: 0.0920  loss_rpn_cls: 0.0054  loss_rpn_bbox: 0.0131  loss_cls: 0.0240  acc: 98.8037  loss_bbox: 0.0495
+2026/03/27 21:19:15 - mmengine - INFO - Epoch(val) [14][ 50/100]    eta: 0:00:02  time: 0.0575  data_time: 0.0073  memory: 808  
+2026/03/27 21:19:17 - mmengine - INFO - Epoch(val) [14][100/100]    eta: 0:00:00  time: 0.0542  data_time: 0.0057  memory: 808  
+2026/03/27 21:19:17 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:19:18 - mmengine - INFO - bbox_mAP_copypaste: 0.309 0.673 0.245 0.092 0.270 0.568
+2026/03/27 21:19:18 - mmengine - INFO - Epoch(val) [14][100/100]    coco/bbox_mAP: 0.3090  coco/bbox_mAP_50: 0.6730  coco/bbox_mAP_75: 0.2450  coco/bbox_mAP_s: 0.0920  coco/bbox_mAP_m: 0.2700  coco/bbox_mAP_l: 0.5680  data_time: 0.0065  time: 0.0558
+2026/03/27 21:19:18 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_12.pth is removed
+2026/03/27 21:19:19 - mmengine - INFO - The best checkpoint with 0.3090 coco/bbox_mAP at 14 epoch is saved to best_coco_bbox_mAP_epoch_14.pth.
+2026/03/27 21:19:43 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:19:43 - mmengine - INFO - Epoch(train) [15][38/38]  lr: 2.0000e-02  eta: 0:25:29  time: 0.6355  data_time: 0.0084  memory: 11336  loss: 0.0868  loss_rpn_cls: 0.0052  loss_rpn_bbox: 0.0119  loss_cls: 0.0227  acc: 98.5962  loss_bbox: 0.0470
+2026/03/27 21:20:07 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:20:07 - mmengine - INFO - Epoch(train) [16][38/38]  lr: 2.0000e-02  eta: 0:25:07  time: 0.6190  data_time: 0.0076  memory: 11336  loss: 0.0777  loss_rpn_cls: 0.0043  loss_rpn_bbox: 0.0102  loss_cls: 0.0196  acc: 99.3530  loss_bbox: 0.0436
+2026/03/27 21:20:10 - mmengine - INFO - Epoch(val) [16][ 50/100]    eta: 0:00:02  time: 0.0505  data_time: 0.0054  memory: 808  
+2026/03/27 21:20:12 - mmengine - INFO - Epoch(val) [16][100/100]    eta: 0:00:00  time: 0.0493  data_time: 0.0044  memory: 808  
+2026/03/27 21:20:12 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:20:12 - mmengine - INFO - bbox_mAP_copypaste: 0.306 0.683 0.211 0.073 0.314 0.507
+2026/03/27 21:20:12 - mmengine - INFO - Epoch(val) [16][100/100]    coco/bbox_mAP: 0.3060  coco/bbox_mAP_50: 0.6830  coco/bbox_mAP_75: 0.2110  coco/bbox_mAP_s: 0.0730  coco/bbox_mAP_m: 0.3140  coco/bbox_mAP_l: 0.5070  data_time: 0.0049  time: 0.0500
+2026/03/27 21:20:36 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:20:36 - mmengine - INFO - Epoch(train) [17][38/38]  lr: 2.0000e-02  eta: 0:24:43  time: 0.6066  data_time: 0.0086  memory: 11336  loss: 0.0770  loss_rpn_cls: 0.0043  loss_rpn_bbox: 0.0112  loss_cls: 0.0193  acc: 98.8159  loss_bbox: 0.0422
+2026/03/27 21:21:00 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:21:00 - mmengine - INFO - Epoch(train) [18][38/38]  lr: 2.0000e-02  eta: 0:24:20  time: 0.6151  data_time: 0.0068  memory: 11336  loss: 0.0711  loss_rpn_cls: 0.0039  loss_rpn_bbox: 0.0095  loss_cls: 0.0184  acc: 99.5117  loss_bbox: 0.0394
+2026/03/27 21:21:02 - mmengine - INFO - Epoch(val) [18][ 50/100]    eta: 0:00:02  time: 0.0523  data_time: 0.0060  memory: 808  
+2026/03/27 21:21:05 - mmengine - INFO - Epoch(val) [18][100/100]    eta: 0:00:00  time: 0.0525  data_time: 0.0054  memory: 808  
+2026/03/27 21:21:05 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:21:05 - mmengine - INFO - bbox_mAP_copypaste: 0.384 0.740 0.404 0.098 0.400 0.606
+2026/03/27 21:21:05 - mmengine - INFO - Epoch(val) [18][100/100]    coco/bbox_mAP: 0.3840  coco/bbox_mAP_50: 0.7400  coco/bbox_mAP_75: 0.4040  coco/bbox_mAP_s: 0.0980  coco/bbox_mAP_m: 0.4000  coco/bbox_mAP_l: 0.6060  data_time: 0.0057  time: 0.0523
+2026/03/27 21:21:05 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_14.pth is removed
+2026/03/27 21:21:06 - mmengine - INFO - The best checkpoint with 0.3840 coco/bbox_mAP at 18 epoch is saved to best_coco_bbox_mAP_epoch_18.pth.
+2026/03/27 21:21:31 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:21:31 - mmengine - INFO - Epoch(train) [19][38/38]  lr: 2.0000e-02  eta: 0:23:59  time: 0.6298  data_time: 0.0082  memory: 11336  loss: 0.0697  loss_rpn_cls: 0.0037  loss_rpn_bbox: 0.0096  loss_cls: 0.0176  acc: 99.3286  loss_bbox: 0.0387
+2026/03/27 21:21:54 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:21:54 - mmengine - INFO - Epoch(train) [20][38/38]  lr: 2.0000e-02  eta: 0:23:36  time: 0.6158  data_time: 0.0085  memory: 11336  loss: 0.0699  loss_rpn_cls: 0.0034  loss_rpn_bbox: 0.0099  loss_cls: 0.0179  acc: 99.5972  loss_bbox: 0.0387
+2026/03/27 21:21:57 - mmengine - INFO - Epoch(val) [20][ 50/100]    eta: 0:00:02  time: 0.0528  data_time: 0.0060  memory: 808  
+2026/03/27 21:22:00 - mmengine - INFO - Epoch(val) [20][100/100]    eta: 0:00:00  time: 0.0500  data_time: 0.0045  memory: 808  
+2026/03/27 21:22:00 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:22:00 - mmengine - INFO - bbox_mAP_copypaste: 0.374 0.747 0.362 0.094 0.376 0.606
+2026/03/27 21:22:00 - mmengine - INFO - Epoch(val) [20][100/100]    coco/bbox_mAP: 0.3740  coco/bbox_mAP_50: 0.7470  coco/bbox_mAP_75: 0.3620  coco/bbox_mAP_s: 0.0940  coco/bbox_mAP_m: 0.3760  coco/bbox_mAP_l: 0.6060  data_time: 0.0052  time: 0.0514
+2026/03/27 21:22:23 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:22:23 - mmengine - INFO - Epoch(train) [21][38/38]  lr: 2.0000e-02  eta: 0:23:12  time: 0.6103  data_time: 0.0083  memory: 11336  loss: 0.0702  loss_rpn_cls: 0.0034  loss_rpn_bbox: 0.0094  loss_cls: 0.0179  acc: 98.6938  loss_bbox: 0.0395
+2026/03/27 21:22:47 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:22:47 - mmengine - INFO - Epoch(train) [22][38/38]  lr: 2.0000e-02  eta: 0:22:50  time: 0.6209  data_time: 0.0096  memory: 11336  loss: 0.0674  loss_rpn_cls: 0.0035  loss_rpn_bbox: 0.0092  loss_cls: 0.0166  acc: 98.8647  loss_bbox: 0.0381
+2026/03/27 21:22:50 - mmengine - INFO - Epoch(val) [22][ 50/100]    eta: 0:00:02  time: 0.0510  data_time: 0.0053  memory: 808  
+2026/03/27 21:22:52 - mmengine - INFO - Epoch(val) [22][100/100]    eta: 0:00:00  time: 0.0501  data_time: 0.0044  memory: 808  
+2026/03/27 21:22:52 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:22:53 - mmengine - INFO - bbox_mAP_copypaste: 0.377 0.795 0.338 0.106 0.403 0.584
+2026/03/27 21:22:53 - mmengine - INFO - Epoch(val) [22][100/100]    coco/bbox_mAP: 0.3770  coco/bbox_mAP_50: 0.7950  coco/bbox_mAP_75: 0.3380  coco/bbox_mAP_s: 0.1060  coco/bbox_mAP_m: 0.4030  coco/bbox_mAP_l: 0.5840  data_time: 0.0048  time: 0.0505
+2026/03/27 21:23:17 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:23:17 - mmengine - INFO - Epoch(train) [23][38/38]  lr: 2.0000e-02  eta: 0:22:27  time: 0.6226  data_time: 0.0081  memory: 11336  loss: 0.0670  loss_rpn_cls: 0.0032  loss_rpn_bbox: 0.0087  loss_cls: 0.0168  acc: 98.6328  loss_bbox: 0.0383
+2026/03/27 21:23:41 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:23:41 - mmengine - INFO - Epoch(train) [24][38/38]  lr: 2.0000e-02  eta: 0:22:04  time: 0.6162  data_time: 0.0081  memory: 11336  loss: 0.0678  loss_rpn_cls: 0.0034  loss_rpn_bbox: 0.0092  loss_cls: 0.0176  acc: 99.2188  loss_bbox: 0.0377
+2026/03/27 21:23:43 - mmengine - INFO - Epoch(val) [24][ 50/100]    eta: 0:00:02  time: 0.0546  data_time: 0.0058  memory: 808  
+2026/03/27 21:23:46 - mmengine - INFO - Epoch(val) [24][100/100]    eta: 0:00:00  time: 0.0516  data_time: 0.0046  memory: 808  
+2026/03/27 21:23:46 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:23:46 - mmengine - INFO - bbox_mAP_copypaste: 0.406 0.791 0.414 0.102 0.433 0.615
+2026/03/27 21:23:46 - mmengine - INFO - Epoch(val) [24][100/100]    coco/bbox_mAP: 0.4060  coco/bbox_mAP_50: 0.7910  coco/bbox_mAP_75: 0.4140  coco/bbox_mAP_s: 0.1020  coco/bbox_mAP_m: 0.4330  coco/bbox_mAP_l: 0.6150  data_time: 0.0052  time: 0.0531
+2026/03/27 21:23:46 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_18.pth is removed
+2026/03/27 21:23:47 - mmengine - INFO - The best checkpoint with 0.4060 coco/bbox_mAP at 24 epoch is saved to best_coco_bbox_mAP_epoch_24.pth.
+2026/03/27 21:24:11 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:24:11 - mmengine - INFO - Epoch(train) [25][38/38]  lr: 2.0000e-02  eta: 0:21:41  time: 0.6222  data_time: 0.0121  memory: 11336  loss: 0.0665  loss_rpn_cls: 0.0033  loss_rpn_bbox: 0.0090  loss_cls: 0.0168  acc: 99.3530  loss_bbox: 0.0374
+2026/03/27 21:24:35 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:24:35 - mmengine - INFO - Epoch(train) [26][38/38]  lr: 2.0000e-02  eta: 0:21:18  time: 0.6210  data_time: 0.0069  memory: 11336  loss: 0.0638  loss_rpn_cls: 0.0030  loss_rpn_bbox: 0.0088  loss_cls: 0.0157  acc: 99.6704  loss_bbox: 0.0364
+2026/03/27 21:24:38 - mmengine - INFO - Epoch(val) [26][ 50/100]    eta: 0:00:02  time: 0.0505  data_time: 0.0052  memory: 808  
+2026/03/27 21:24:40 - mmengine - INFO - Epoch(val) [26][100/100]    eta: 0:00:00  time: 0.0498  data_time: 0.0043  memory: 808  
+2026/03/27 21:24:40 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:24:40 - mmengine - INFO - bbox_mAP_copypaste: 0.412 0.803 0.392 0.121 0.431 0.616
+2026/03/27 21:24:40 - mmengine - INFO - Epoch(val) [26][100/100]    coco/bbox_mAP: 0.4120  coco/bbox_mAP_50: 0.8030  coco/bbox_mAP_75: 0.3920  coco/bbox_mAP_s: 0.1210  coco/bbox_mAP_m: 0.4310  coco/bbox_mAP_l: 0.6160  data_time: 0.0047  time: 0.0501
+2026/03/27 21:24:40 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_24.pth is removed
+2026/03/27 21:24:41 - mmengine - INFO - The best checkpoint with 0.4120 coco/bbox_mAP at 26 epoch is saved to best_coco_bbox_mAP_epoch_26.pth.
+2026/03/27 21:24:50 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:25:05 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:25:05 - mmengine - INFO - Epoch(train) [27][38/38]  lr: 2.0000e-02  eta: 0:20:55  time: 0.6208  data_time: 0.0110  memory: 11336  loss: 0.0605  loss_rpn_cls: 0.0028  loss_rpn_bbox: 0.0078  loss_cls: 0.0150  acc: 99.4995  loss_bbox: 0.0350
+2026/03/27 21:25:30 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:25:30 - mmengine - INFO - Epoch(train) [28][38/38]  lr: 2.0000e-02  eta: 0:20:32  time: 0.6234  data_time: 0.0128  memory: 11336  loss: 0.0619  loss_rpn_cls: 0.0027  loss_rpn_bbox: 0.0081  loss_cls: 0.0154  acc: 99.1455  loss_bbox: 0.0357
+2026/03/27 21:25:32 - mmengine - INFO - Epoch(val) [28][ 50/100]    eta: 0:00:02  time: 0.0503  data_time: 0.0051  memory: 808  
+2026/03/27 21:25:35 - mmengine - INFO - Epoch(val) [28][100/100]    eta: 0:00:00  time: 0.0499  data_time: 0.0046  memory: 808  
+2026/03/27 21:25:35 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:25:35 - mmengine - INFO - bbox_mAP_copypaste: 0.395 0.802 0.388 0.147 0.437 0.565
+2026/03/27 21:25:35 - mmengine - INFO - Epoch(val) [28][100/100]    coco/bbox_mAP: 0.3950  coco/bbox_mAP_50: 0.8020  coco/bbox_mAP_75: 0.3880  coco/bbox_mAP_s: 0.1470  coco/bbox_mAP_m: 0.4370  coco/bbox_mAP_l: 0.5650  data_time: 0.0049  time: 0.0501
+2026/03/27 21:25:59 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:25:59 - mmengine - INFO - Epoch(train) [29][38/38]  lr: 2.0000e-02  eta: 0:20:09  time: 0.6208  data_time: 0.0072  memory: 11336  loss: 0.0579  loss_rpn_cls: 0.0027  loss_rpn_bbox: 0.0078  loss_cls: 0.0142  acc: 99.5483  loss_bbox: 0.0332
+2026/03/27 21:26:23 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:26:23 - mmengine - INFO - Epoch(train) [30][38/38]  lr: 2.0000e-02  eta: 0:19:46  time: 0.6202  data_time: 0.0070  memory: 11336  loss: 0.0583  loss_rpn_cls: 0.0026  loss_rpn_bbox: 0.0080  loss_cls: 0.0142  acc: 99.6094  loss_bbox: 0.0335
+2026/03/27 21:26:25 - mmengine - INFO - Epoch(val) [30][ 50/100]    eta: 0:00:02  time: 0.0515  data_time: 0.0058  memory: 808  
+2026/03/27 21:26:28 - mmengine - INFO - Epoch(val) [30][100/100]    eta: 0:00:00  time: 0.0498  data_time: 0.0046  memory: 808  
+2026/03/27 21:26:28 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:26:28 - mmengine - INFO - bbox_mAP_copypaste: 0.423 0.804 0.422 0.136 0.440 0.642
+2026/03/27 21:26:28 - mmengine - INFO - Epoch(val) [30][100/100]    coco/bbox_mAP: 0.4230  coco/bbox_mAP_50: 0.8040  coco/bbox_mAP_75: 0.4220  coco/bbox_mAP_s: 0.1360  coco/bbox_mAP_m: 0.4400  coco/bbox_mAP_l: 0.6420  data_time: 0.0052  time: 0.0507
+2026/03/27 21:26:28 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_26.pth is removed
+2026/03/27 21:26:29 - mmengine - INFO - The best checkpoint with 0.4230 coco/bbox_mAP at 30 epoch is saved to best_coco_bbox_mAP_epoch_30.pth.
+2026/03/27 21:26:53 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:26:53 - mmengine - INFO - Epoch(train) [31][38/38]  lr: 2.0000e-02  eta: 0:19:22  time: 0.6212  data_time: 0.0068  memory: 11336  loss: 0.0576  loss_rpn_cls: 0.0027  loss_rpn_bbox: 0.0073  loss_cls: 0.0143  acc: 99.4751  loss_bbox: 0.0333
+2026/03/27 21:27:17 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:27:17 - mmengine - INFO - Epoch(train) [32][38/38]  lr: 2.0000e-02  eta: 0:18:59  time: 0.6221  data_time: 0.0086  memory: 11336  loss: 0.0562  loss_rpn_cls: 0.0024  loss_rpn_bbox: 0.0076  loss_cls: 0.0138  acc: 99.4751  loss_bbox: 0.0324
+2026/03/27 21:27:19 - mmengine - INFO - Epoch(val) [32][ 50/100]    eta: 0:00:02  time: 0.0515  data_time: 0.0055  memory: 808  
+2026/03/27 21:27:22 - mmengine - INFO - Epoch(val) [32][100/100]    eta: 0:00:00  time: 0.0503  data_time: 0.0045  memory: 808  
+2026/03/27 21:27:22 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:27:22 - mmengine - INFO - bbox_mAP_copypaste: 0.432 0.809 0.445 0.103 0.449 0.663
+2026/03/27 21:27:22 - mmengine - INFO - Epoch(val) [32][100/100]    coco/bbox_mAP: 0.4320  coco/bbox_mAP_50: 0.8090  coco/bbox_mAP_75: 0.4450  coco/bbox_mAP_s: 0.1030  coco/bbox_mAP_m: 0.4490  coco/bbox_mAP_l: 0.6630  data_time: 0.0050  time: 0.0509
+2026/03/27 21:27:22 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_30.pth is removed
+2026/03/27 21:27:23 - mmengine - INFO - The best checkpoint with 0.4320 coco/bbox_mAP at 32 epoch is saved to best_coco_bbox_mAP_epoch_32.pth.
+2026/03/27 21:27:47 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:27:47 - mmengine - INFO - Epoch(train) [33][38/38]  lr: 2.0000e-02  eta: 0:18:36  time: 0.6273  data_time: 0.0077  memory: 11336  loss: 0.0564  loss_rpn_cls: 0.0023  loss_rpn_bbox: 0.0078  loss_cls: 0.0138  acc: 99.4141  loss_bbox: 0.0326
+2026/03/27 21:28:12 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:28:12 - mmengine - INFO - Epoch(train) [34][38/38]  lr: 2.0000e-02  eta: 0:18:14  time: 0.6398  data_time: 0.0134  memory: 11336  loss: 0.0563  loss_rpn_cls: 0.0021  loss_rpn_bbox: 0.0071  loss_cls: 0.0141  acc: 99.0723  loss_bbox: 0.0330
+2026/03/27 21:28:15 - mmengine - INFO - Epoch(val) [34][ 50/100]    eta: 0:00:02  time: 0.0520  data_time: 0.0058  memory: 808  
+2026/03/27 21:28:17 - mmengine - INFO - Epoch(val) [34][100/100]    eta: 0:00:00  time: 0.0512  data_time: 0.0047  memory: 808  
+2026/03/27 21:28:17 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:28:17 - mmengine - INFO - bbox_mAP_copypaste: 0.431 0.828 0.442 0.112 0.468 0.626
+2026/03/27 21:28:17 - mmengine - INFO - Epoch(val) [34][100/100]    coco/bbox_mAP: 0.4310  coco/bbox_mAP_50: 0.8280  coco/bbox_mAP_75: 0.4420  coco/bbox_mAP_s: 0.1120  coco/bbox_mAP_m: 0.4680  coco/bbox_mAP_l: 0.6260  data_time: 0.0052  time: 0.0516
+2026/03/27 21:28:42 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:28:42 - mmengine - INFO - Epoch(train) [35][38/38]  lr: 2.0000e-02  eta: 0:17:51  time: 0.6366  data_time: 0.0090  memory: 11336  loss: 0.0581  loss_rpn_cls: 0.0023  loss_rpn_bbox: 0.0074  loss_cls: 0.0144  acc: 98.9380  loss_bbox: 0.0341
+2026/03/27 21:29:06 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:29:06 - mmengine - INFO - Epoch(train) [36][38/38]  lr: 2.0000e-02  eta: 0:17:28  time: 0.6336  data_time: 0.0099  memory: 11336  loss: 0.0527  loss_rpn_cls: 0.0022  loss_rpn_bbox: 0.0070  loss_cls: 0.0130  acc: 99.5605  loss_bbox: 0.0305
+2026/03/27 21:29:09 - mmengine - INFO - Epoch(val) [36][ 50/100]    eta: 0:00:02  time: 0.0546  data_time: 0.0065  memory: 807  
+2026/03/27 21:29:12 - mmengine - INFO - Epoch(val) [36][100/100]    eta: 0:00:00  time: 0.0516  data_time: 0.0054  memory: 808  
+2026/03/27 21:29:12 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:29:12 - mmengine - INFO - bbox_mAP_copypaste: 0.430 0.811 0.437 0.113 0.464 0.640
+2026/03/27 21:29:12 - mmengine - INFO - Epoch(val) [36][100/100]    coco/bbox_mAP: 0.4300  coco/bbox_mAP_50: 0.8110  coco/bbox_mAP_75: 0.4370  coco/bbox_mAP_s: 0.1130  coco/bbox_mAP_m: 0.4640  coco/bbox_mAP_l: 0.6400  data_time: 0.0059  time: 0.0530
+2026/03/27 21:29:36 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:29:36 - mmengine - INFO - Epoch(train) [37][38/38]  lr: 2.0000e-02  eta: 0:17:04  time: 0.6174  data_time: 0.0126  memory: 11336  loss: 0.0505  loss_rpn_cls: 0.0021  loss_rpn_bbox: 0.0070  loss_cls: 0.0125  acc: 99.1455  loss_bbox: 0.0289
+2026/03/27 21:29:59 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:29:59 - mmengine - INFO - Epoch(train) [38][38/38]  lr: 2.0000e-02  eta: 0:16:39  time: 0.6058  data_time: 0.0096  memory: 11336  loss: 0.0520  loss_rpn_cls: 0.0025  loss_rpn_bbox: 0.0065  loss_cls: 0.0131  acc: 99.7437  loss_bbox: 0.0298
+2026/03/27 21:30:02 - mmengine - INFO - Epoch(val) [38][ 50/100]    eta: 0:00:02  time: 0.0520  data_time: 0.0062  memory: 808  
+2026/03/27 21:30:04 - mmengine - INFO - Epoch(val) [38][100/100]    eta: 0:00:00  time: 0.0505  data_time: 0.0057  memory: 808  
+2026/03/27 21:30:04 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:30:05 - mmengine - INFO - bbox_mAP_copypaste: 0.433 0.811 0.438 0.112 0.465 0.650
+2026/03/27 21:30:05 - mmengine - INFO - Epoch(val) [38][100/100]    coco/bbox_mAP: 0.4330  coco/bbox_mAP_50: 0.8110  coco/bbox_mAP_75: 0.4380  coco/bbox_mAP_s: 0.1120  coco/bbox_mAP_m: 0.4650  coco/bbox_mAP_l: 0.6500  data_time: 0.0059  time: 0.0513
+2026/03/27 21:30:05 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_32.pth is removed
+2026/03/27 21:30:06 - mmengine - INFO - The best checkpoint with 0.4330 coco/bbox_mAP at 38 epoch is saved to best_coco_bbox_mAP_epoch_38.pth.
+2026/03/27 21:30:30 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:30:30 - mmengine - INFO - Epoch(train) [39][38/38]  lr: 2.0000e-02  eta: 0:16:16  time: 0.6217  data_time: 0.0164  memory: 11336  loss: 0.0523  loss_rpn_cls: 0.0023  loss_rpn_bbox: 0.0070  loss_cls: 0.0130  acc: 99.4873  loss_bbox: 0.0299
+2026/03/27 21:30:54 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:30:54 - mmengine - INFO - Epoch(train) [40][38/38]  lr: 2.0000e-02  eta: 0:15:52  time: 0.6185  data_time: 0.0091  memory: 11336  loss: 0.0507  loss_rpn_cls: 0.0022  loss_rpn_bbox: 0.0066  loss_cls: 0.0124  acc: 99.4263  loss_bbox: 0.0295
+2026/03/27 21:30:56 - mmengine - INFO - Epoch(val) [40][ 50/100]    eta: 0:00:02  time: 0.0552  data_time: 0.0072  memory: 808  
+2026/03/27 21:30:59 - mmengine - INFO - Epoch(val) [40][100/100]    eta: 0:00:00  time: 0.0515  data_time: 0.0057  memory: 808  
+2026/03/27 21:30:59 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:30:59 - mmengine - INFO - bbox_mAP_copypaste: 0.436 0.816 0.436 0.129 0.447 0.673
+2026/03/27 21:30:59 - mmengine - INFO - Epoch(val) [40][100/100]    coco/bbox_mAP: 0.4360  coco/bbox_mAP_50: 0.8160  coco/bbox_mAP_75: 0.4360  coco/bbox_mAP_s: 0.1290  coco/bbox_mAP_m: 0.4470  coco/bbox_mAP_l: 0.6730  data_time: 0.0065  time: 0.0533
+2026/03/27 21:30:59 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_38.pth is removed
+2026/03/27 21:31:00 - mmengine - INFO - The best checkpoint with 0.4360 coco/bbox_mAP at 40 epoch is saved to best_coco_bbox_mAP_epoch_40.pth.
+2026/03/27 21:31:24 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:31:24 - mmengine - INFO - Epoch(train) [41][38/38]  lr: 2.0000e-02  eta: 0:15:29  time: 0.6199  data_time: 0.0120  memory: 11336  loss: 0.0489  loss_rpn_cls: 0.0020  loss_rpn_bbox: 0.0063  loss_cls: 0.0121  acc: 99.5972  loss_bbox: 0.0286
+2026/03/27 21:31:49 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:31:49 - mmengine - INFO - Epoch(train) [42][38/38]  lr: 2.0000e-02  eta: 0:15:05  time: 0.6262  data_time: 0.0131  memory: 11336  loss: 0.0476  loss_rpn_cls: 0.0019  loss_rpn_bbox: 0.0062  loss_cls: 0.0117  acc: 99.6460  loss_bbox: 0.0278
+2026/03/27 21:31:51 - mmengine - INFO - Epoch(val) [42][ 50/100]    eta: 0:00:02  time: 0.0495  data_time: 0.0055  memory: 808  
+2026/03/27 21:31:54 - mmengine - INFO - Epoch(val) [42][100/100]    eta: 0:00:00  time: 0.0492  data_time: 0.0049  memory: 808  
+2026/03/27 21:31:54 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:31:54 - mmengine - INFO - bbox_mAP_copypaste: 0.439 0.809 0.453 0.129 0.458 0.675
+2026/03/27 21:31:54 - mmengine - INFO - Epoch(val) [42][100/100]    coco/bbox_mAP: 0.4390  coco/bbox_mAP_50: 0.8090  coco/bbox_mAP_75: 0.4530  coco/bbox_mAP_s: 0.1290  coco/bbox_mAP_m: 0.4580  coco/bbox_mAP_l: 0.6750  data_time: 0.0052  time: 0.0494
+2026/03/27 21:31:54 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_40.pth is removed
+2026/03/27 21:31:55 - mmengine - INFO - The best checkpoint with 0.4390 coco/bbox_mAP at 42 epoch is saved to best_coco_bbox_mAP_epoch_42.pth.
+2026/03/27 21:32:18 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:32:18 - mmengine - INFO - Epoch(train) [43][38/38]  lr: 2.0000e-02  eta: 0:14:41  time: 0.6116  data_time: 0.0106  memory: 11336  loss: 0.0497  loss_rpn_cls: 0.0021  loss_rpn_bbox: 0.0064  loss_cls: 0.0125  acc: 99.7803  loss_bbox: 0.0287
+2026/03/27 21:32:42 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:32:42 - mmengine - INFO - Epoch(train) [44][38/38]  lr: 2.0000e-02  eta: 0:14:17  time: 0.6084  data_time: 0.0116  memory: 11336  loss: 0.0476  loss_rpn_cls: 0.0019  loss_rpn_bbox: 0.0065  loss_cls: 0.0118  acc: 99.3530  loss_bbox: 0.0274
+2026/03/27 21:32:45 - mmengine - INFO - Epoch(val) [44][ 50/100]    eta: 0:00:02  time: 0.0501  data_time: 0.0060  memory: 808  
+2026/03/27 21:32:47 - mmengine - INFO - Epoch(val) [44][100/100]    eta: 0:00:00  time: 0.0506  data_time: 0.0050  memory: 808  
+2026/03/27 21:32:47 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:32:47 - mmengine - INFO - bbox_mAP_copypaste: 0.423 0.813 0.418 0.095 0.425 0.675
+2026/03/27 21:32:47 - mmengine - INFO - Epoch(val) [44][100/100]    coco/bbox_mAP: 0.4230  coco/bbox_mAP_50: 0.8130  coco/bbox_mAP_75: 0.4180  coco/bbox_mAP_s: 0.0950  coco/bbox_mAP_m: 0.4250  coco/bbox_mAP_l: 0.6750  data_time: 0.0055  time: 0.0503
+2026/03/27 21:33:11 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:33:11 - mmengine - INFO - Epoch(train) [45][38/38]  lr: 2.0000e-02  eta: 0:13:53  time: 0.6120  data_time: 0.0090  memory: 11336  loss: 0.0468  loss_rpn_cls: 0.0017  loss_rpn_bbox: 0.0062  loss_cls: 0.0116  acc: 99.4019  loss_bbox: 0.0273
+2026/03/27 21:33:35 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:33:35 - mmengine - INFO - Epoch(train) [46][38/38]  lr: 2.0000e-02  eta: 0:13:29  time: 0.6119  data_time: 0.0090  memory: 11336  loss: 0.0462  loss_rpn_cls: 0.0019  loss_rpn_bbox: 0.0063  loss_cls: 0.0115  acc: 99.3530  loss_bbox: 0.0265
+2026/03/27 21:33:37 - mmengine - INFO - Epoch(val) [46][ 50/100]    eta: 0:00:02  time: 0.0497  data_time: 0.0056  memory: 808  
+2026/03/27 21:33:40 - mmengine - INFO - Epoch(val) [46][100/100]    eta: 0:00:00  time: 0.0496  data_time: 0.0052  memory: 808  
+2026/03/27 21:33:40 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:33:40 - mmengine - INFO - bbox_mAP_copypaste: 0.434 0.804 0.440 0.105 0.433 0.697
+2026/03/27 21:33:40 - mmengine - INFO - Epoch(val) [46][100/100]    coco/bbox_mAP: 0.4340  coco/bbox_mAP_50: 0.8040  coco/bbox_mAP_75: 0.4400  coco/bbox_mAP_s: 0.1050  coco/bbox_mAP_m: 0.4330  coco/bbox_mAP_l: 0.6970  data_time: 0.0054  time: 0.0498
+2026/03/27 21:34:03 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:34:03 - mmengine - INFO - Epoch(train) [47][38/38]  lr: 2.0000e-02  eta: 0:13:05  time: 0.6053  data_time: 0.0099  memory: 11336  loss: 0.0451  loss_rpn_cls: 0.0018  loss_rpn_bbox: 0.0062  loss_cls: 0.0110  acc: 99.4019  loss_bbox: 0.0260
+2026/03/27 21:34:27 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:34:27 - mmengine - INFO - Epoch(train) [48][38/38]  lr: 2.0000e-02  eta: 0:12:41  time: 0.6080  data_time: 0.0075  memory: 11336  loss: 0.0457  loss_rpn_cls: 0.0018  loss_rpn_bbox: 0.0062  loss_cls: 0.0111  acc: 99.6460  loss_bbox: 0.0266
+2026/03/27 21:34:29 - mmengine - INFO - Epoch(val) [48][ 50/100]    eta: 0:00:02  time: 0.0502  data_time: 0.0057  memory: 808  
+2026/03/27 21:34:32 - mmengine - INFO - Epoch(val) [48][100/100]    eta: 0:00:00  time: 0.0498  data_time: 0.0052  memory: 807  
+2026/03/27 21:34:32 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:34:32 - mmengine - INFO - bbox_mAP_copypaste: 0.439 0.811 0.460 0.084 0.469 0.660
+2026/03/27 21:34:32 - mmengine - INFO - Epoch(val) [48][100/100]    coco/bbox_mAP: 0.4390  coco/bbox_mAP_50: 0.8110  coco/bbox_mAP_75: 0.4600  coco/bbox_mAP_s: 0.0840  coco/bbox_mAP_m: 0.4690  coco/bbox_mAP_l: 0.6600  data_time: 0.0054  time: 0.0500
+2026/03/27 21:34:56 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:34:56 - mmengine - INFO - Epoch(train) [49][38/38]  lr: 2.0000e-02  eta: 0:12:17  time: 0.6149  data_time: 0.0105  memory: 11336  loss: 0.0442  loss_rpn_cls: 0.0018  loss_rpn_bbox: 0.0058  loss_cls: 0.0107  acc: 99.6216  loss_bbox: 0.0259
+2026/03/27 21:35:20 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:35:20 - mmengine - INFO - Epoch(train) [50][38/38]  lr: 2.0000e-02  eta: 0:11:54  time: 0.6153  data_time: 0.0096  memory: 11336  loss: 0.0430  loss_rpn_cls: 0.0017  loss_rpn_bbox: 0.0059  loss_cls: 0.0104  acc: 99.3164  loss_bbox: 0.0251
+2026/03/27 21:35:22 - mmengine - INFO - Epoch(val) [50][ 50/100]    eta: 0:00:02  time: 0.0501  data_time: 0.0059  memory: 807  
+2026/03/27 21:35:25 - mmengine - INFO - Epoch(val) [50][100/100]    eta: 0:00:00  time: 0.0505  data_time: 0.0054  memory: 808  
+2026/03/27 21:35:25 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:35:25 - mmengine - INFO - bbox_mAP_copypaste: 0.444 0.831 0.448 0.133 0.439 0.690
+2026/03/27 21:35:25 - mmengine - INFO - Epoch(val) [50][100/100]    coco/bbox_mAP: 0.4440  coco/bbox_mAP_50: 0.8310  coco/bbox_mAP_75: 0.4480  coco/bbox_mAP_s: 0.1330  coco/bbox_mAP_m: 0.4390  coco/bbox_mAP_l: 0.6900  data_time: 0.0056  time: 0.0503
+2026/03/27 21:35:25 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_42.pth is removed
+2026/03/27 21:35:26 - mmengine - INFO - The best checkpoint with 0.4440 coco/bbox_mAP at 50 epoch is saved to best_coco_bbox_mAP_epoch_50.pth.
+2026/03/27 21:35:50 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:35:50 - mmengine - INFO - Epoch(train) [51][38/38]  lr: 2.0000e-02  eta: 0:11:30  time: 0.6211  data_time: 0.0122  memory: 11336  loss: 0.0422  loss_rpn_cls: 0.0018  loss_rpn_bbox: 0.0058  loss_cls: 0.0103  acc: 99.2310  loss_bbox: 0.0243
+2026/03/27 21:36:14 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:36:14 - mmengine - INFO - Epoch(train) [52][38/38]  lr: 2.0000e-02  eta: 0:11:06  time: 0.6118  data_time: 0.0107  memory: 11336  loss: 0.0445  loss_rpn_cls: 0.0018  loss_rpn_bbox: 0.0060  loss_cls: 0.0108  acc: 99.6826  loss_bbox: 0.0259
+2026/03/27 21:36:16 - mmengine - INFO - Epoch(val) [52][ 50/100]    eta: 0:00:02  time: 0.0512  data_time: 0.0058  memory: 808  
+2026/03/27 21:36:19 - mmengine - INFO - Epoch(val) [52][100/100]    eta: 0:00:00  time: 0.0508  data_time: 0.0048  memory: 808  
+2026/03/27 21:36:19 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:36:19 - mmengine - INFO - bbox_mAP_copypaste: 0.449 0.826 0.447 0.129 0.471 0.679
+2026/03/27 21:36:19 - mmengine - INFO - Epoch(val) [52][100/100]    coco/bbox_mAP: 0.4490  coco/bbox_mAP_50: 0.8260  coco/bbox_mAP_75: 0.4470  coco/bbox_mAP_s: 0.1290  coco/bbox_mAP_m: 0.4710  coco/bbox_mAP_l: 0.6790  data_time: 0.0053  time: 0.0510
+2026/03/27 21:36:19 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_50.pth is removed
+2026/03/27 21:36:20 - mmengine - INFO - The best checkpoint with 0.4490 coco/bbox_mAP at 52 epoch is saved to best_coco_bbox_mAP_epoch_52.pth.
+2026/03/27 21:36:35 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:36:44 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:36:44 - mmengine - INFO - Epoch(train) [53][38/38]  lr: 2.0000e-02  eta: 0:10:42  time: 0.6164  data_time: 0.0101  memory: 11336  loss: 0.0403  loss_rpn_cls: 0.0015  loss_rpn_bbox: 0.0055  loss_cls: 0.0100  acc: 99.5605  loss_bbox: 0.0233
+2026/03/27 21:37:08 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:37:08 - mmengine - INFO - Epoch(train) [54][38/38]  lr: 2.0000e-03  eta: 0:10:19  time: 0.6219  data_time: 0.0100  memory: 11336  loss: 0.0383  loss_rpn_cls: 0.0015  loss_rpn_bbox: 0.0049  loss_cls: 0.0097  acc: 99.8779  loss_bbox: 0.0222
+2026/03/27 21:37:10 - mmengine - INFO - Epoch(val) [54][ 50/100]    eta: 0:00:02  time: 0.0508  data_time: 0.0053  memory: 807  
+2026/03/27 21:37:13 - mmengine - INFO - Epoch(val) [54][100/100]    eta: 0:00:00  time: 0.0504  data_time: 0.0047  memory: 808  
+2026/03/27 21:37:13 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:37:13 - mmengine - INFO - bbox_mAP_copypaste: 0.452 0.825 0.465 0.119 0.459 0.703
+2026/03/27 21:37:13 - mmengine - INFO - Epoch(val) [54][100/100]    coco/bbox_mAP: 0.4520  coco/bbox_mAP_50: 0.8250  coco/bbox_mAP_75: 0.4650  coco/bbox_mAP_s: 0.1190  coco/bbox_mAP_m: 0.4590  coco/bbox_mAP_l: 0.7030  data_time: 0.0050  time: 0.0505
+2026/03/27 21:37:13 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_52.pth is removed
+2026/03/27 21:37:14 - mmengine - INFO - The best checkpoint with 0.4520 coco/bbox_mAP at 54 epoch is saved to best_coco_bbox_mAP_epoch_54.pth.
+2026/03/27 21:37:37 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:37:37 - mmengine - INFO - Epoch(train) [55][38/38]  lr: 2.0000e-03  eta: 0:09:54  time: 0.5955  data_time: 0.0112  memory: 11336  loss: 0.0338  loss_rpn_cls: 0.0015  loss_rpn_bbox: 0.0040  loss_cls: 0.0090  acc: 99.4629  loss_bbox: 0.0194
+2026/03/27 21:37:59 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:37:59 - mmengine - INFO - Epoch(train) [56][38/38]  lr: 2.0000e-03  eta: 0:09:30  time: 0.5817  data_time: 0.0123  memory: 11336  loss: 0.0339  loss_rpn_cls: 0.0014  loss_rpn_bbox: 0.0039  loss_cls: 0.0092  acc: 99.7681  loss_bbox: 0.0194
+2026/03/27 21:38:02 - mmengine - INFO - Epoch(val) [56][ 50/100]    eta: 0:00:02  time: 0.0496  data_time: 0.0055  memory: 808  
+2026/03/27 21:38:04 - mmengine - INFO - Epoch(val) [56][100/100]    eta: 0:00:00  time: 0.0469  data_time: 0.0040  memory: 807  
+2026/03/27 21:38:04 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:38:04 - mmengine - INFO - bbox_mAP_copypaste: 0.453 0.832 0.470 0.120 0.469 0.689
+2026/03/27 21:38:04 - mmengine - INFO - Epoch(val) [56][100/100]    coco/bbox_mAP: 0.4530  coco/bbox_mAP_50: 0.8320  coco/bbox_mAP_75: 0.4700  coco/bbox_mAP_s: 0.1200  coco/bbox_mAP_m: 0.4690  coco/bbox_mAP_l: 0.6890  data_time: 0.0047  time: 0.0483
+2026/03/27 21:38:04 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_54.pth is removed
+2026/03/27 21:38:06 - mmengine - INFO - The best checkpoint with 0.4530 coco/bbox_mAP at 56 epoch is saved to best_coco_bbox_mAP_epoch_56.pth.
+2026/03/27 21:38:28 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:38:28 - mmengine - INFO - Epoch(train) [57][38/38]  lr: 2.0000e-03  eta: 0:09:06  time: 0.5830  data_time: 0.0130  memory: 11336  loss: 0.0327  loss_rpn_cls: 0.0014  loss_rpn_bbox: 0.0038  loss_cls: 0.0088  acc: 99.8413  loss_bbox: 0.0187
+2026/03/27 21:38:51 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:38:51 - mmengine - INFO - Epoch(train) [58][38/38]  lr: 2.0000e-03  eta: 0:08:42  time: 0.5838  data_time: 0.0123  memory: 11336  loss: 0.0322  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0038  loss_cls: 0.0086  acc: 99.4263  loss_bbox: 0.0185
+2026/03/27 21:38:53 - mmengine - INFO - Epoch(val) [58][ 50/100]    eta: 0:00:02  time: 0.0500  data_time: 0.0058  memory: 807  
+2026/03/27 21:38:56 - mmengine - INFO - Epoch(val) [58][100/100]    eta: 0:00:00  time: 0.0484  data_time: 0.0045  memory: 807  
+2026/03/27 21:38:56 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:38:56 - mmengine - INFO - bbox_mAP_copypaste: 0.450 0.833 0.467 0.118 0.466 0.688
+2026/03/27 21:38:56 - mmengine - INFO - Epoch(val) [58][100/100]    coco/bbox_mAP: 0.4500  coco/bbox_mAP_50: 0.8330  coco/bbox_mAP_75: 0.4670  coco/bbox_mAP_s: 0.1180  coco/bbox_mAP_m: 0.4660  coco/bbox_mAP_l: 0.6880  data_time: 0.0051  time: 0.0492
+2026/03/27 21:39:18 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:39:18 - mmengine - INFO - Epoch(train) [59][38/38]  lr: 2.0000e-03  eta: 0:08:17  time: 0.5821  data_time: 0.0078  memory: 11336  loss: 0.0325  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0038  loss_cls: 0.0088  acc: 99.3652  loss_bbox: 0.0187
+2026/03/27 21:39:41 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:39:41 - mmengine - INFO - Epoch(train) [60][38/38]  lr: 2.0000e-03  eta: 0:07:53  time: 0.5891  data_time: 0.0145  memory: 11336  loss: 0.0327  loss_rpn_cls: 0.0014  loss_rpn_bbox: 0.0038  loss_cls: 0.0090  acc: 98.8281  loss_bbox: 0.0186
+2026/03/27 21:39:44 - mmengine - INFO - Epoch(val) [60][ 50/100]    eta: 0:00:02  time: 0.0496  data_time: 0.0054  memory: 807  
+2026/03/27 21:39:46 - mmengine - INFO - Epoch(val) [60][100/100]    eta: 0:00:00  time: 0.0479  data_time: 0.0044  memory: 807  
+2026/03/27 21:39:46 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:39:46 - mmengine - INFO - bbox_mAP_copypaste: 0.454 0.830 0.465 0.117 0.468 0.694
+2026/03/27 21:39:46 - mmengine - INFO - Epoch(val) [60][100/100]    coco/bbox_mAP: 0.4540  coco/bbox_mAP_50: 0.8300  coco/bbox_mAP_75: 0.4650  coco/bbox_mAP_s: 0.1170  coco/bbox_mAP_m: 0.4680  coco/bbox_mAP_l: 0.6940  data_time: 0.0049  time: 0.0488
+2026/03/27 21:39:46 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_56.pth is removed
+2026/03/27 21:39:47 - mmengine - INFO - The best checkpoint with 0.4540 coco/bbox_mAP at 60 epoch is saved to best_coco_bbox_mAP_epoch_60.pth.
+2026/03/27 21:40:10 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:40:10 - mmengine - INFO - Epoch(train) [61][38/38]  lr: 2.0000e-03  eta: 0:07:29  time: 0.5869  data_time: 0.0066  memory: 11336  loss: 0.0323  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0038  loss_cls: 0.0088  acc: 99.7314  loss_bbox: 0.0185
+2026/03/27 21:40:33 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:40:33 - mmengine - INFO - Epoch(train) [62][38/38]  lr: 2.0000e-03  eta: 0:07:05  time: 0.5880  data_time: 0.0122  memory: 11336  loss: 0.0307  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0036  loss_cls: 0.0084  acc: 99.6460  loss_bbox: 0.0175
+2026/03/27 21:40:35 - mmengine - INFO - Epoch(val) [62][ 50/100]    eta: 0:00:02  time: 0.0504  data_time: 0.0057  memory: 807  
+2026/03/27 21:40:38 - mmengine - INFO - Epoch(val) [62][100/100]    eta: 0:00:00  time: 0.0470  data_time: 0.0040  memory: 807  
+2026/03/27 21:40:38 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:40:38 - mmengine - INFO - bbox_mAP_copypaste: 0.455 0.828 0.469 0.112 0.471 0.695
+2026/03/27 21:40:38 - mmengine - INFO - Epoch(val) [62][100/100]    coco/bbox_mAP: 0.4550  coco/bbox_mAP_50: 0.8280  coco/bbox_mAP_75: 0.4690  coco/bbox_mAP_s: 0.1120  coco/bbox_mAP_m: 0.4710  coco/bbox_mAP_l: 0.6950  data_time: 0.0048  time: 0.0487
+2026/03/27 21:40:38 - mmengine - INFO - The previous best checkpoint /workspace/aquaculture-perception/runs/mmdet/net_fish_sonar/faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained/best_coco_bbox_mAP_epoch_60.pth is removed
+2026/03/27 21:40:39 - mmengine - INFO - The best checkpoint with 0.4550 coco/bbox_mAP at 62 epoch is saved to best_coco_bbox_mAP_epoch_62.pth.
+2026/03/27 21:41:01 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:41:01 - mmengine - INFO - Epoch(train) [63][38/38]  lr: 2.0000e-03  eta: 0:06:42  time: 0.5872  data_time: 0.0079  memory: 11336  loss: 0.0300  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0036  loss_cls: 0.0080  acc: 99.7925  loss_bbox: 0.0171
+2026/03/27 21:41:24 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:41:24 - mmengine - INFO - Epoch(train) [64][38/38]  lr: 2.0000e-03  eta: 0:06:18  time: 0.5886  data_time: 0.0112  memory: 11336  loss: 0.0298  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0035  loss_cls: 0.0080  acc: 99.7437  loss_bbox: 0.0171
+2026/03/27 21:41:27 - mmengine - INFO - Epoch(val) [64][ 50/100]    eta: 0:00:02  time: 0.0492  data_time: 0.0052  memory: 807  
+2026/03/27 21:41:29 - mmengine - INFO - Epoch(val) [64][100/100]    eta: 0:00:00  time: 0.0483  data_time: 0.0044  memory: 807  
+2026/03/27 21:41:29 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:41:29 - mmengine - INFO - bbox_mAP_copypaste: 0.453 0.820 0.469 0.113 0.464 0.700
+2026/03/27 21:41:29 - mmengine - INFO - Epoch(val) [64][100/100]    coco/bbox_mAP: 0.4530  coco/bbox_mAP_50: 0.8200  coco/bbox_mAP_75: 0.4690  coco/bbox_mAP_s: 0.1130  coco/bbox_mAP_m: 0.4640  coco/bbox_mAP_l: 0.7000  data_time: 0.0048  time: 0.0487
+2026/03/27 21:41:52 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:41:52 - mmengine - INFO - Epoch(train) [65][38/38]  lr: 2.0000e-03  eta: 0:05:54  time: 0.5835  data_time: 0.0108  memory: 11336  loss: 0.0311  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0035  loss_cls: 0.0085  acc: 99.8047  loss_bbox: 0.0179
+2026/03/27 21:42:15 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:42:15 - mmengine - INFO - Epoch(train) [66][38/38]  lr: 2.0000e-03  eta: 0:05:30  time: 0.5867  data_time: 0.0133  memory: 11336  loss: 0.0302  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0035  loss_cls: 0.0081  acc: 99.3164  loss_bbox: 0.0174
+2026/03/27 21:42:17 - mmengine - INFO - Epoch(val) [66][ 50/100]    eta: 0:00:02  time: 0.0493  data_time: 0.0056  memory: 807  
+2026/03/27 21:42:19 - mmengine - INFO - Epoch(val) [66][100/100]    eta: 0:00:00  time: 0.0469  data_time: 0.0040  memory: 807  
+2026/03/27 21:42:19 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:42:19 - mmengine - INFO - bbox_mAP_copypaste: 0.454 0.830 0.473 0.115 0.468 0.692
+2026/03/27 21:42:19 - mmengine - INFO - Epoch(val) [66][100/100]    coco/bbox_mAP: 0.4540  coco/bbox_mAP_50: 0.8300  coco/bbox_mAP_75: 0.4730  coco/bbox_mAP_s: 0.1150  coco/bbox_mAP_m: 0.4680  coco/bbox_mAP_l: 0.6920  data_time: 0.0048  time: 0.0481
+2026/03/27 21:42:42 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:42:42 - mmengine - INFO - Epoch(train) [67][38/38]  lr: 2.0000e-03  eta: 0:05:06  time: 0.5863  data_time: 0.0131  memory: 11336  loss: 0.0314  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0036  loss_cls: 0.0086  acc: 99.4019  loss_bbox: 0.0180
+2026/03/27 21:43:05 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:43:05 - mmengine - INFO - Epoch(train) [68][38/38]  lr: 2.0000e-03  eta: 0:04:42  time: 0.5794  data_time: 0.0095  memory: 11336  loss: 0.0294  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0034  loss_cls: 0.0082  acc: 99.8779  loss_bbox: 0.0167
+2026/03/27 21:43:07 - mmengine - INFO - Epoch(val) [68][ 50/100]    eta: 0:00:02  time: 0.0497  data_time: 0.0057  memory: 808  
+2026/03/27 21:43:09 - mmengine - INFO - Epoch(val) [68][100/100]    eta: 0:00:00  time: 0.0475  data_time: 0.0045  memory: 807  
+2026/03/27 21:43:10 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:43:10 - mmengine - INFO - bbox_mAP_copypaste: 0.452 0.823 0.473 0.119 0.461 0.699
+2026/03/27 21:43:10 - mmengine - INFO - Epoch(val) [68][100/100]    coco/bbox_mAP: 0.4520  coco/bbox_mAP_50: 0.8230  coco/bbox_mAP_75: 0.4730  coco/bbox_mAP_s: 0.1190  coco/bbox_mAP_m: 0.4610  coco/bbox_mAP_l: 0.6990  data_time: 0.0051  time: 0.0485
+2026/03/27 21:43:33 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:43:33 - mmengine - INFO - Epoch(train) [69][38/38]  lr: 2.0000e-03  eta: 0:04:19  time: 0.5940  data_time: 0.0105  memory: 11336  loss: 0.0295  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0035  loss_cls: 0.0081  acc: 99.4019  loss_bbox: 0.0167
+2026/03/27 21:43:56 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:43:56 - mmengine - INFO - Epoch(train) [70][38/38]  lr: 2.0000e-03  eta: 0:03:55  time: 0.6023  data_time: 0.0112  memory: 11336  loss: 0.0299  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0035  loss_cls: 0.0082  acc: 99.4263  loss_bbox: 0.0171
+2026/03/27 21:43:59 - mmengine - INFO - Epoch(val) [70][ 50/100]    eta: 0:00:02  time: 0.0483  data_time: 0.0053  memory: 807  
+2026/03/27 21:44:01 - mmengine - INFO - Epoch(val) [70][100/100]    eta: 0:00:00  time: 0.0472  data_time: 0.0045  memory: 807  
+2026/03/27 21:44:01 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:44:01 - mmengine - INFO - bbox_mAP_copypaste: 0.450 0.820 0.474 0.098 0.466 0.693
+2026/03/27 21:44:01 - mmengine - INFO - Epoch(val) [70][100/100]    coco/bbox_mAP: 0.4500  coco/bbox_mAP_50: 0.8200  coco/bbox_mAP_75: 0.4740  coco/bbox_mAP_s: 0.0980  coco/bbox_mAP_m: 0.4660  coco/bbox_mAP_l: 0.6930  data_time: 0.0049  time: 0.0477
+2026/03/27 21:44:24 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:44:24 - mmengine - INFO - Epoch(train) [71][38/38]  lr: 2.0000e-03  eta: 0:03:32  time: 0.6045  data_time: 0.0095  memory: 11336  loss: 0.0294  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0034  loss_cls: 0.0081  acc: 99.7192  loss_bbox: 0.0167
+2026/03/27 21:44:48 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:44:48 - mmengine - INFO - Epoch(train) [72][38/38]  lr: 2.0000e-03  eta: 0:03:08  time: 0.6021  data_time: 0.0087  memory: 11336  loss: 0.0293  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0034  loss_cls: 0.0080  acc: 99.6704  loss_bbox: 0.0166
+2026/03/27 21:44:50 - mmengine - INFO - Epoch(val) [72][ 50/100]    eta: 0:00:02  time: 0.0483  data_time: 0.0052  memory: 807  
+2026/03/27 21:44:53 - mmengine - INFO - Epoch(val) [72][100/100]    eta: 0:00:00  time: 0.0485  data_time: 0.0044  memory: 808  
+2026/03/27 21:44:53 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:44:53 - mmengine - INFO - bbox_mAP_copypaste: 0.455 0.823 0.478 0.116 0.469 0.693
+2026/03/27 21:44:53 - mmengine - INFO - Epoch(val) [72][100/100]    coco/bbox_mAP: 0.4550  coco/bbox_mAP_50: 0.8230  coco/bbox_mAP_75: 0.4780  coco/bbox_mAP_s: 0.1160  coco/bbox_mAP_m: 0.4690  coco/bbox_mAP_l: 0.6930  data_time: 0.0048  time: 0.0484
+2026/03/27 21:45:16 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:45:16 - mmengine - INFO - Epoch(train) [73][38/38]  lr: 2.0000e-03  eta: 0:02:44  time: 0.6018  data_time: 0.0119  memory: 11336  loss: 0.0299  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0035  loss_cls: 0.0082  acc: 99.4263  loss_bbox: 0.0170
+2026/03/27 21:45:39 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:45:39 - mmengine - INFO - Epoch(train) [74][38/38]  lr: 2.0000e-04  eta: 0:02:21  time: 0.5921  data_time: 0.0108  memory: 11336  loss: 0.0293  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0033  loss_cls: 0.0081  acc: 99.6216  loss_bbox: 0.0166
+2026/03/27 21:45:41 - mmengine - INFO - Epoch(val) [74][ 50/100]    eta: 0:00:02  time: 0.0488  data_time: 0.0051  memory: 807  
+2026/03/27 21:45:43 - mmengine - INFO - Epoch(val) [74][100/100]    eta: 0:00:00  time: 0.0489  data_time: 0.0045  memory: 807  
+2026/03/27 21:45:43 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:45:44 - mmengine - INFO - bbox_mAP_copypaste: 0.453 0.817 0.468 0.105 0.468 0.695
+2026/03/27 21:45:44 - mmengine - INFO - Epoch(val) [74][100/100]    coco/bbox_mAP: 0.4530  coco/bbox_mAP_50: 0.8170  coco/bbox_mAP_75: 0.4680  coco/bbox_mAP_s: 0.1050  coco/bbox_mAP_m: 0.4680  coco/bbox_mAP_l: 0.6950  data_time: 0.0048  time: 0.0488
+2026/03/27 21:46:07 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:46:07 - mmengine - INFO - Epoch(train) [75][38/38]  lr: 2.0000e-04  eta: 0:01:57  time: 0.5961  data_time: 0.0130  memory: 11336  loss: 0.0297  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0034  loss_cls: 0.0082  acc: 99.6704  loss_bbox: 0.0168
+2026/03/27 21:46:30 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:46:30 - mmengine - INFO - Epoch(train) [76][38/38]  lr: 2.0000e-04  eta: 0:01:34  time: 0.5915  data_time: 0.0169  memory: 11336  loss: 0.0285  loss_rpn_cls: 0.0011  loss_rpn_bbox: 0.0033  loss_cls: 0.0079  acc: 99.4873  loss_bbox: 0.0162
+2026/03/27 21:46:32 - mmengine - INFO - Epoch(val) [76][ 50/100]    eta: 0:00:02  time: 0.0486  data_time: 0.0053  memory: 807  
+2026/03/27 21:46:34 - mmengine - INFO - Epoch(val) [76][100/100]    eta: 0:00:00  time: 0.0484  data_time: 0.0044  memory: 807  
+2026/03/27 21:46:34 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:46:35 - mmengine - INFO - bbox_mAP_copypaste: 0.454 0.818 0.478 0.105 0.470 0.693
+2026/03/27 21:46:35 - mmengine - INFO - Epoch(val) [76][100/100]    coco/bbox_mAP: 0.4540  coco/bbox_mAP_50: 0.8180  coco/bbox_mAP_75: 0.4780  coco/bbox_mAP_s: 0.1050  coco/bbox_mAP_m: 0.4700  coco/bbox_mAP_l: 0.6930  data_time: 0.0048  time: 0.0484
+2026/03/27 21:46:57 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:46:57 - mmengine - INFO - Epoch(train) [77][38/38]  lr: 2.0000e-04  eta: 0:01:10  time: 0.5816  data_time: 0.0097  memory: 11336  loss: 0.0276  loss_rpn_cls: 0.0011  loss_rpn_bbox: 0.0033  loss_cls: 0.0076  acc: 99.7437  loss_bbox: 0.0156
+2026/03/27 21:47:19 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:47:19 - mmengine - INFO - Epoch(train) [78][38/38]  lr: 2.0000e-04  eta: 0:00:46  time: 0.5779  data_time: 0.0084  memory: 11336  loss: 0.0282  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0033  loss_cls: 0.0079  acc: 99.8535  loss_bbox: 0.0159
+2026/03/27 21:47:22 - mmengine - INFO - Epoch(val) [78][ 50/100]    eta: 0:00:02  time: 0.0493  data_time: 0.0053  memory: 807  
+2026/03/27 21:47:24 - mmengine - INFO - Epoch(val) [78][100/100]    eta: 0:00:00  time: 0.0472  data_time: 0.0043  memory: 807  
+2026/03/27 21:47:24 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:47:24 - mmengine - INFO - bbox_mAP_copypaste: 0.455 0.814 0.479 0.100 0.470 0.698
+2026/03/27 21:47:24 - mmengine - INFO - Epoch(val) [78][100/100]    coco/bbox_mAP: 0.4550  coco/bbox_mAP_50: 0.8140  coco/bbox_mAP_75: 0.4790  coco/bbox_mAP_s: 0.1000  coco/bbox_mAP_m: 0.4700  coco/bbox_mAP_l: 0.6980  data_time: 0.0048  time: 0.0483
+2026/03/27 21:47:46 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:47:47 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:47:47 - mmengine - INFO - Epoch(train) [79][38/38]  lr: 2.0000e-04  eta: 0:00:23  time: 0.5785  data_time: 0.0113  memory: 11336  loss: 0.0292  loss_rpn_cls: 0.0013  loss_rpn_bbox: 0.0033  loss_cls: 0.0080  acc: 99.7437  loss_bbox: 0.0165
+2026/03/27 21:48:10 - mmengine - INFO - Exp name: faster_rcnn_r50_fpn_net_fish_sonar_80e_pretrained_20260327_211256
+2026/03/27 21:48:10 - mmengine - INFO - Epoch(train) [80][38/38]  lr: 2.0000e-04  eta: 0:00:00  time: 0.5967  data_time: 0.0113  memory: 11336  loss: 0.0290  loss_rpn_cls: 0.0012  loss_rpn_bbox: 0.0033  loss_cls: 0.0081  acc: 99.5483  loss_bbox: 0.0164
+2026/03/27 21:48:10 - mmengine - INFO - Saving checkpoint at 80 epochs
+2026/03/27 21:48:14 - mmengine - INFO - Epoch(val) [80][ 50/100]    eta: 0:00:02  time: 0.0504  data_time: 0.0053  memory: 807  
+2026/03/27 21:48:16 - mmengine - INFO - Epoch(val) [80][100/100]    eta: 0:00:00  time: 0.0505  data_time: 0.0051  memory: 808  
+2026/03/27 21:48:16 - mmengine - INFO - Evaluating bbox...
+2026/03/27 21:48:17 - mmengine - INFO - bbox_mAP_copypaste: 0.452 0.817 0.465 0.103 0.466 0.696
+2026/03/27 21:48:17 - mmengine - INFO - Epoch(val) [80][100/100]    coco/bbox_mAP: 0.4520  coco/bbox_mAP_50: 0.8170  coco/bbox_mAP_75: 0.4650  coco/bbox_mAP_s: 0.1030  coco/bbox_mAP_m: 0.4660  coco/bbox_mAP_l: 0.6960  data_time: 0.0052  time: 0.0504
