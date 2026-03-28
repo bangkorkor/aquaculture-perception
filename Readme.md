@@ -101,6 +101,16 @@ python tools/test.py \
   ../runs/mmdet/ruod/detr_r50_ruod_120e_pretrained/best_coco_bbox_mAP_epoch_62.pth
 ```
 
+
+Run video inference: (place video in demo-folder)
+```bash
+python demo/video_demo.py \
+    demo/vision_raw_2024-08-20_17-14-36.mp4 \
+    configs/solaqua_fish/dino_4scale_r50_solaqua_fish_80e_pretrained.py \
+    ../runs/mmdet/solaqua_fish/dino_4scale_r50_solaqua_fish_80e_pretrained/best_coco_bbox_mAP_epoch_4.pth \
+    --out result.mp4
+```
+
 # RunPod
 ### Moving files in runpod with rsync
 ```bash
