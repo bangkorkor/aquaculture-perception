@@ -55,4 +55,4 @@ if __name__ == "__main__":
         exist_ok=opt.exist_ok,
     )
 
-    print(results)
+
