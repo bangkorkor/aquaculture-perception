@@ -169,8 +169,8 @@ def sam3_text_video_overlay(
 
 if __name__ == "__main__":
     out = sam3_text_video_overlay(
-        video_path="../../data-processing/vision/FishVideo/FishVideo_12sec.mp4",
-        out_video_path="../runs/sam3_fish_overlay.mp4",
+        video_path="../../data-processing/vision/SOLAQUA/raw_processed/mp4s/vision_raw_2024-08-20_17-14-36.mp4",
+        out_video_path="../runs/sam3_fish_overlay_36.mp4",
         text_prompts=["Fish"],     # <-- your concept(s)
         model_path="../models/sam3.pt",
         imgsz=640,
