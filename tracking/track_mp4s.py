@@ -8,12 +8,15 @@ model = YOLO("../runs/detect/outputs/training/solaqua_fish/rt_detr_solaqua_fish_
 # Perform tracking with the model
 
 results = model.track(
-    source="../data-processing/vision/SOLAQUA/raw_processed/mp4s/vision_raw_2024-08-20_13-55-34.mp4",
+    source="../data-processing/vision/SOLAQUA/raw_processed/mp4s/vision_raw_2024-08-20_14-31-29.mp4",
+    project='/cluster/home/henrban/aquaculture-perception/runs/video_demos/predictions/solaqua_fish/tracking',
     tracker="bytetrack.yaml",
     show=False,
     save=True,
     stream=True,
-    device="cpu", # remove for gpu/automatic
+    # device="cpu", # remove for gpu/automatic
+    conf=0.25,
+    iou=0.45
 )
 
 for r in results:
