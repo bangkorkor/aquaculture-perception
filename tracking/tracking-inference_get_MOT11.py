@@ -1,39 +1,60 @@
+#!/usr/bin/env python3
+
+# This code is for running inference on an image folder
+# and getting output in MOT 1.1 format,
+# where frame_id is the timestamp from the image filename.
+
 from ultralytics import YOLO
 from pathlib import Path
 import zipfile
-import cv2
 
+
+# =========================
+# INPUT / OUTPUT
+# =========================
 
 # Load model
 model = YOLO(
     "../runs/detect/outputs/training/solaqua_fish/rt_detr_solaqua_fish_120e_fair/weights/best.pt"
 )
 
-# Input video
-source = "../data-processing/vision/SOLAQUA/raw_processed/mp4s/vision_raw_2024-08-20_14-31-29.mp4"
+# Input image folder
+source = "../data-processing/vision/SOLAQUA/raw_processed/all_images/2024-08-20_14-31-29"
 
 # Output paths
 source_path = Path(source)
-video_name = source_path.stem
+sequence_name = source_path.name
 
-output_dir = Path("outputs")
+output_dir = Path("outputs/inference_annotation_MOT11")
 output_dir.mkdir(parents=True, exist_ok=True)
 
-gt_txt_path = output_dir / f"INFERENCE_GT_{video_name}.txt"
-labels_txt_path = output_dir / f"INFERENCE_GT_{video_name}_labels.txt"
-zip_path = output_dir / f"INFERENCE_GT_{video_name}.zip"
+gt_txt_path = output_dir / f"INFERENCE_MOT11_{sequence_name}.txt"
+labels_txt_path = output_dir / f"INFERENCE_MOT11_{sequence_name}_labels.txt"
+zip_path = output_dir / f"INFERENCE_MOT11_{sequence_name}.zip"
 
-# Read video metadata
-cap = cv2.VideoCapture(source)
-if not cap.isOpened():
-    raise RuntimeError(f"Could not open video: {source}")
+# Allowed image extensions
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
 
-fps = cap.get(cv2.CAP_PROP_FPS)
-frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-cap.release()
 
-if fps <= 0:
-    raise RuntimeError(f"Invalid FPS: {fps}")
+def numeric_sort_key(path_obj: Path):
+    stem = path_obj.stem
+    try:
+        return (0, int(stem))
+    except ValueError:
+        return (1, stem)
+
+
+# List images in deterministic order
+image_paths = [
+    p for p in source_path.iterdir()
+    if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS
+]
+image_paths.sort(key=numeric_sort_key)
+
+if not image_paths:
+    raise RuntimeError(f"No image files found in folder: {source}")
+
+frame_count = len(image_paths)
 
 # Build class names from model
 if isinstance(model.names, dict):
@@ -44,11 +65,12 @@ else:
 # MOT class IDs are 1-based in labels.txt order
 class_id_map = {i: i + 1 for i in range(len(class_names))}
 
-# Run tracking
+# Run tracking on the image folder
 results = model.track(
     source=source,
     project="/cluster/home/henrban/aquaculture-perception/runs/video_demos/predictions/solaqua_fish/tracking",
     tracker="bytetrack.yaml",
+    persist=True, 
     show=False,
     save=True,
     stream=True,
@@ -58,8 +80,17 @@ results = model.track(
 
 mot_lines = []
 
-# MOT frame_id is 1-based
-for frame_idx, r in enumerate(results, start=1):
+# Use the image filename stem as MOT frame_id
+# Example: 1724157141573392600.jpg -> frame_id = "1724157141573392600"
+for frame_idx, r in enumerate(results):
+    if frame_idx >= len(image_paths):
+        print(
+            f"[WARN] Got more model results than input images. "
+            f"Stopping at image count {len(image_paths)}."
+        )
+        break
+
+    frame_id = image_paths[frame_idx].stem
     boxes = r.boxes
 
     if boxes is None or len(boxes) == 0:
@@ -85,7 +116,7 @@ for frame_idx, r in enumerate(results, start=1):
         visibility = 1.0
 
         line = (
-            f"{frame_idx},"
+            f"{frame_id},"
             f"{int(track_id)},"
             f"{x:.2f},"
             f"{y:.2f},"
@@ -107,7 +138,7 @@ with open(labels_txt_path, "w", encoding="utf-8") as f:
         f.write(f"{name}\n")
 
 # Create CVAT MOT zip:
-# GT_<video_name>.zip
+# INFERENCE_MOT11_<sequence_name>.zip
 # └── gt/
 #     ├── gt.txt
 #     └── labels.txt
@@ -118,5 +149,5 @@ with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
 print(f"Saved GT txt: {gt_txt_path}")
 print(f"Saved labels txt: {labels_txt_path}")
 print(f"Saved CVAT zip: {zip_path}")
-print(f"Frames in video: {frame_count}")
+print(f"Frames in image folder: {frame_count}")
 print(f"Total MOT rows written: {len(mot_lines)}")
