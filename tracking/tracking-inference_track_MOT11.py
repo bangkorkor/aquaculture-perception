@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# This code is for running inference on an image folder
+# This code is for running inference on an image folder, using ultralytic's mdel.track()
 # and getting output in MOT 1.1 format,
 # where frame_id is the timestamp from the image filename.
 

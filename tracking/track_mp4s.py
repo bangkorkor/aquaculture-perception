@@ -1,3 +1,5 @@
+# This code is for running inference on .mp4 OR image-dir, and getting output as corresponding input
+
 from ultralytics import YOLO
 
 # Load an official or custom model

@@ -25,6 +25,7 @@ Examples:
 
 import argparse
 import csv
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,8 +37,9 @@ import numpy as np
 # HARD CODE PATHS HERE
 # =========================
 IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/SOLAQUA/raw_processed/all_images/2024-08-20_14-31-29"
-GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_14-31-29/gt/gt.txt"
-OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_gt_demos/vision_gt_demo_31-29.mp4"
+# GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_14-31-29/gt/gt.txt"
+GT_FILE = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/inference_annotation_MOT11/INFERENCE_MOT11_2024-08-20_14-31-29.txt"
+OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_mp4_demos/vision_INFERENCE_demo_31-29.mp4"   # change inference and gt here!! 
 
 # Optional settings
 FPS = "auto"   # use "auto" or a number like 10 or 20
@@ -215,6 +217,41 @@ def draw_bottom_right_lines(img, lines):
         )
         current_y = text_y + baseline + line_gap
 
+def get_unique_output_path(path_str):
+    """
+    Return a unique file path by appending/incrementing a number at the end
+    if the file already exists.
+
+    Examples:
+        demo.mp4     -> demo.mp4        (if it does not exist)
+        demo.mp4     -> demo_1.mp4      (if demo.mp4 exists)
+        demo_1.mp4   -> demo_2.mp4      (if demo_1.mp4 exists)
+    """
+    path = Path(path_str)
+
+    if not path.exists():
+        return path
+
+    parent = path.parent
+    suffix = path.suffix
+    stem = path.stem
+
+    match = re.match(r"^(.*?)(?:_(\d+))?$", stem)
+    if match:
+        base_name = match.group(1)
+        start_num = int(match.group(2)) if match.group(2) else 0
+    else:
+        base_name = stem
+        start_num = 0
+
+    counter = start_num + 1
+    while True:
+        candidate = parent / f"{base_name}_{counter}{suffix}"
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
+
 
 def main():
     args = parse_args()
@@ -236,7 +273,7 @@ def main():
     else:
         fps = float(FPS)
 
-    output_path = Path(OUTPUT_MP4)
+    output_path = get_unique_output_path(OUTPUT_MP4)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     writer = cv2.VideoWriter(
