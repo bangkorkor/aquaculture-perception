@@ -34,7 +34,7 @@ MODEL_PATH = (
 
 SOURCE = (
     "../data-processing/vision/SOLAQUA/raw_processed"
-    "/all_images/2024-08-20_14-31-29"
+    "/all_images/2024-08-20_17-55-40"
 )
 
 OUTPUT_DIR = Path("outputs/inference_annotation_MOT11")

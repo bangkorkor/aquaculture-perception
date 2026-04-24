@@ -188,9 +188,9 @@ def main() -> None:
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    gt_txt_path     = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_{sequence_name}.txt")
-    labels_txt_path = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_{sequence_name}_labels.txt")
-    zip_path        = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_{sequence_name}.zip")
+    gt_txt_path     = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_CVAT_{sequence_name}.txt")
+    labels_txt_path = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_CVAT_{sequence_name}_labels.txt")
+    zip_path        = unique_path(OUTPUT_DIR / f"INFERENCE_MOT11_CVAT_{sequence_name}.zip")
 
     # ------------------------------------------------------------------
     # Load model + build class map
@@ -223,7 +223,7 @@ def main() -> None:
     mot_lines: list[str] = []
     frames_with_tracks = 0
 
-    for frame_idx, img_path in enumerate(image_paths, start=1):
+    for frame_idx, img_path in enumerate(image_paths, start=2):     # i do not understand why it shall start at 2 but it is correct
         frame = cv2.imread(str(img_path))
         if frame is None:
             print(f"[WARN] Could not read: {img_path}")
