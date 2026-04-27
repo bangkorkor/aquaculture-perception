@@ -34,7 +34,7 @@ MODEL_PATH = (
 
 SOURCE = (
     "../data-processing/vision/SOLAQUA/raw_processed"
-    "/all_images/2024-08-20_17-55-40"
+    "/all_images/2024-08-20_17-02-00"
 )
 
 OUTPUT_DIR = Path("outputs/inference_annotation_MOT11")
@@ -46,7 +46,7 @@ CONF_THRESHOLD = 0.25
 # discarding valid detections.
 IOU_THRESHOLD  = 0.99
 
-DEVICE         = "cuda:0"   # e.g. "cuda:0" for GPU, "cpu"
+DEVICE         = "cpu"   # e.g. "cuda:0" for GPU, "cpu"
 FRAME_RATE     = 30      # used by ByteTrack's Kalman filter
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
