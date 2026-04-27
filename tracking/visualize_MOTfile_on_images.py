@@ -37,9 +37,9 @@ import numpy as np
 # HARD CODE PATHS HERE
 # =========================
 IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/SOLAQUA/raw_processed/all_images/2024-08-20_17-55-40"
-# GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_14-31-29/gt/gt.txt"
-GT_FILE = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/inference_annotation_MOT11/INFERENCE_MOT11_2024-08-20_17-55-40.txt"
-OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_mp4_demos/vision_INFERENCE_demo_2024-08-20_17-55-40.mp4"   # change inference and gt here!! 
+GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_17-55-40/gt/gt.txt"
+# GT_FILE = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/inference_annotation_MOT11/INFERENCE_MOT11_2024-08-20_17-55-40.txt"
+OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_mp4_demos/vision_GT_demo_2024-08-20_17-55-40.mp4"   # change inference and gt here!! 
 
 # Optional settings
 FPS = "auto"   # use "auto" or a number like 10 or 20
