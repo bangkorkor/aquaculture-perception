@@ -33,7 +33,7 @@ MODEL_PATH = (
 )
 
 SOURCE = (
-    "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/SOLAQUA/raw_processed/all_images/2024-08-20_14-31-29"
+    "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-14-36"
 )
 
 OUTPUT_DIR = Path("outputs/inference_annotation_MOT11_CVAT_SONAR")
@@ -45,7 +45,7 @@ CONF_THRESHOLD = 0.25
 # discarding valid detections.
 IOU_THRESHOLD  = 0.45
 
-DEVICE         = "cpu"   # e.g. "cuda:0" for GPU
+DEVICE         = "cuda:0"   # e.g. "cuda:0" for GPU
 FRAME_RATE     = 30      # used by ByteTrack's Kalman filter
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
