@@ -31,9 +31,12 @@ from ultralytics.utils.checks import check_yaml
 MODEL_PATH = (
     "/cluster/home/henrban/aquaculture-perception/runs/detect/outputs/training/net_fish_sonar/yolov26s_net_fish_sonar_120e_fair/weights/best.pt"
 )
+# MODEL_PATH = (
+#     "/cluster/home/henrban/aquaculture-perception/runs/detect/outputs/training/solaqua_fish/rt_detr_solaqua_fish_120e_fair/weights/best.pt"
+# )
 
 SOURCE = (
-    "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-14-36"
+    "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-39-32/frames"
 )
 
 OUTPUT_DIR = Path("outputs/inference_annotation_MOT11_CVAT_SONAR")
@@ -45,7 +48,7 @@ CONF_THRESHOLD = 0.25
 # discarding valid detections.
 IOU_THRESHOLD  = 0.45
 
-DEVICE         = "cuda:0"   # e.g. "cuda:0" for GPU
+DEVICE         = "cpu"   # e.g. "cuda:0" for GPU
 FRAME_RATE     = 30      # used by ByteTrack's Kalman filter
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
