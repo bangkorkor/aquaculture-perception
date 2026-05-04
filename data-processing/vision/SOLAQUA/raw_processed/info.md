@@ -15,7 +15,7 @@
 - 2024-08-20_16-47-54       Fish: 19-27s, 69-76s. Good fish
 - 2024-08-20_17-02-00       Fish: 41-44s, 47-60s (very clustered at end)
 - 2024-08-20_17-14-36       Fish: 0-8s, 22-25s, 27-41s, (clustered at the end). 
-- 2024-08-20_17-14-36       Fish: Lots of free-swimming, (clustered at the end 38s). 
+- 2024-08-20_17-39-32       Fish: Lots of free-swimming, (clustered at the end 38s). 
 - 2024-08-20_17-55-40	    Fish: 1-9s, 29-36s, 43-50s (clustered at the end)
 - 2024-08-20_18-47-40       Fish: NO FISH. Close to net with some ofset
 - 2024-08-20_18-50-22       Fish: NO FISH
