@@ -36,10 +36,10 @@ import numpy as np
 # =========================
 # HARD CODE PATHS HERE
 # =========================
-IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_17-14-36/frames/2024-08-20_17-14-36"
-GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_17-14-36/gt/gt.txt"
+IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-55-40/frames"
+GT_FILE = "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-55-40/gt/gt.txt"
 # GT_FILE = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/inference_annotation_MOT11/INFERENCE_MOT11_2024-08-20_17-02-00.txt"
-OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_mp4_demos/vision_GT_demoINFO_2024-08-20_17-14-36.mp4"   # change inference and gt here!! 
+OUTPUT_MP4 = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/labeled_mp4_demos/sonar_GT_demoINFO_2024-08-20_17-55-40.mp4"   # change inference and gt here!! 
 
 # Optional settings
 FPS = "auto"   # use "auto" or a number like 10 or 20
