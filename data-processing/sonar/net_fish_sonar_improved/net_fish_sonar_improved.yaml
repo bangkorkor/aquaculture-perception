@@ -1,0 +1,7 @@
+train: /cluster/home/henrban/aquaculture-perception/data-processing/sonar/net_fish_sonar_improved/processed/images/train
+val:   /cluster/home/henrban/aquaculture-perception/data-processing/sonar/net_fish_sonar_improved/processed/images/val
+test:  /cluster/home/henrban/aquaculture-perception/data-processing/sonar/net_fish_sonar_improved/processed/images/test
+
+names:
+  - fish
+  - net
