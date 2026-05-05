@@ -94,3 +94,39 @@ yolov11s_net_fish_sonar_120e_fair,yolo11s.pt,yolo11s.pt,../data-processing/sonar
 yolov26n_net_fish_sonar_120e_fair,yolo26n.pt,yolo26n.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov26n_net_fish_sonar_120e_fair
 yolov26s_net_fish_sonar_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,yolov26s_net_fish_sonar_120e_fair
 rt_detr_net_fish_sonar_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar,rt_detr_net_fish_sonar_120e_fair
+
+
+--- IMPROVED TRAINING and Ablation ------
+yolov26s_net_fish_sonar_improved,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_improved,outputs/training/net_fish_sonar,yolov26s_net_fish_sonar_improved
+--- ablation: LR schedule (cosine vs linear) ---
+yolov26s_net_fish_sonar_abl_no_cos,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_abl_no_cos,outputs/training/net_fish_sonar,yolov26s_net_fish_sonar_abl_no_cos
+
+
+--- ablation: all augmentation removed ---
+yolov26s_net_fish_sonar_abl_no_aug,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_abl_no_aug,outputs/training/net_fish_sonar,yolov26s_net_fish_sonar_abl_no_aug
+
+--- RT-DETR solaqua_fish improved + ablation ---
+rt_detr_solaqua_fish_improved,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_improved,outputs/training/solaqua_fish,rt_detr_solaqua_fish_improved
+--- ablation: LR schedule (cosine vs linear) ---
+rt_detr_solaqua_fish_abl_no_cos,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_abl_no_cos,outputs/training/solaqua_fish,rt_detr_solaqua_fish_abl_no_cos
+--- ablation: mosaic (RT-DETR disables by default - test if it helps) ---
+rt_detr_solaqua_fish_abl_mosaic,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_abl_mosaic,outputs/training/solaqua_fish,rt_detr_solaqua_fish_abl_mosaic
+
+--- ablation: all augmentation removed ---
+rt_detr_solaqua_fish_abl_no_aug,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_abl_no_aug,outputs/training/solaqua_fish,rt_detr_solaqua_fish_abl_no_aug
+
+--- optimizer LR sweep: net_fish_sonar / YOLOv26s ---
+--- SGD: lr in {0.01, 0.005, 0.001} ---
+yolov26s_sonar_opt_sgd_lr01,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_sgd_lr01,outputs/training/net_fish_sonar,yolov26s_sonar_opt_sgd_lr01
+yolov26s_sonar_opt_sgd_lr005,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_sgd_lr005,outputs/training/net_fish_sonar,yolov26s_sonar_opt_sgd_lr005
+yolov26s_sonar_opt_sgd_lr001,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_sgd_lr001,outputs/training/net_fish_sonar,yolov26s_sonar_opt_sgd_lr001
+--- AdamW: lr in {0.001, 0.0005, 0.0001} ---
+yolov26s_sonar_opt_adamw_lr001,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_adamw_lr001,outputs/training/net_fish_sonar,yolov26s_sonar_opt_adamw_lr001
+yolov26s_sonar_opt_adamw_lr0005,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_adamw_lr0005,outputs/training/net_fish_sonar,yolov26s_sonar_opt_adamw_lr0005
+yolov26s_sonar_opt_adamw_lr0001,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar/net_fish_sonar.yaml,net_fish_sonar_opt_adamw_lr0001,outputs/training/net_fish_sonar,yolov26s_sonar_opt_adamw_lr0001
+
+--- optimizer LR sweep: solaqua_fish / RT-DETR-L (AdamW only — transformer architecture) ---
+--- AdamW: lr in {0.001, 0.0001, 0.00001} ---
+rt_detr_solaqua_opt_adamw_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_opt_adamw_lr001,outputs/training/solaqua_fish,rt_detr_solaqua_opt_adamw_lr001
+rt_detr_solaqua_opt_adamw_lr0001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_opt_adamw_lr0001,outputs/training/solaqua_fish,rt_detr_solaqua_opt_adamw_lr0001
+rt_detr_solaqua_opt_adamw_lr00001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,solaqua_fish_rtdetr_opt_adamw_lr00001,outputs/training/solaqua_fish,rt_detr_solaqua_opt_adamw_lr00001
