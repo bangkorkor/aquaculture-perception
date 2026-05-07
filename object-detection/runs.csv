@@ -103,17 +103,16 @@ rt_detr_net_fish_sonar_120e_fair,rtdetr-l.pt,rtdetr-l.pt,../data-processing/sona
 --- solaqua_fish / RT-DETR-L ---
 --- Phase 1: LR sweep (AdamW only — transformer requires adaptive optimizer, auto_augment and erasing is off) ---
 --- AdamW: lr in {0.001, 0.0005, 0.0001} ---
-rtdetr_fish_opt_adamw_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr001,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr001
-rtdetr_fish_opt_adamw_lr0005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0005,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr0005
-rtdetr_fish_opt_adamw_lr0001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0001,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr0001
+- rtdetr_fish_opt_adamw_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr001,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr001
+- rtdetr_fish_opt_adamw_lr0005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0005,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr0005
+- rtdetr_fish_opt_adamw_lr0001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0001,outputs/training/solaqua_fish_improved,rtdetr_fish_opt_adamw_lr0001
 --- Phase 2: Improved (update lr0 after Phase 1) ---
-rtdetr_fish_improved_a,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_a,outputs/training/solaqua_fish_improved,rtdetr_fish_improved_a
-rtdetr_fish_improved_b,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_b,outputs/training/solaqua_fish_improved,rtdetr_fish_improved_b
+- rtdetr_fish_improved_a,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_a,outputs/training/solaqua_fish_improved,rtdetr_fish_improved_a
+- rtdetr_fish_improved_b,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_b,outputs/training/solaqua_fish_improved,rtdetr_fish_improved_b
 
 --- Phase 3: Ablation ---
-rtdetr_fish_abl_no_cos,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_cos,outputs/training/solaqua_fish_improved,rtdetr_fish_abl_no_cos
-rtdetr_fish_abl_no_aug,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_aug,outputs/training/solaqua_fish_improved,rtdetr_fish_abl_no_aug
-rtdetr_fish_abl_mosaic,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_mosaic,outputs/training/solaqua_fish_improved,rtdetr_fish_abl_mosaic
+- rtdetr_fish_abl_no_cos,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_cos,outputs/training/solaqua_fish_improved,rtdetr_fish_abl_no_cos
+- rtdetr_fish_abl_no_aug,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_aug,outputs/training/solaqua_fish_improved,rtdetr_fish_abl_no_aug
 
 
 
@@ -140,9 +139,48 @@ yolov26s_sonar_abl_no_aug,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fis
 
 
 
+!!!!!!!!!FIXED!!!!!!!!!!!!!!
+--- solaqua_fish / RT-DETR-L ---
+--- Phase 1: LR sweep (AdamW only — transformer requires adaptive optimizer, auto_augment and erasing is off) ---
+--- SGD: lr in {0.01, 0.005, 0.001} ---
+rtdetr_fish_opt_sgd_lr01,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr01,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr01
+rtdetr_fish_opt_sgd_lr005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr005,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr005
+rtdetr_fish_opt_sgd_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr001
+--- AdamW: lr in {0.001, 0.0005, 0.0001} ---
+rtdetr_fish_opt_adamw_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr001
+rtdetr_fish_opt_adamw_lr0005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0005,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr0005
+rtdetr_fish_opt_adamw_lr0001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr0001
+--- Phase 2: Improved (update lr0 after Phase 1) ---
+rtdetr_fish_improved_a,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_a,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_a
+rtdetr_fish_improved_b,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_b,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_b
+
+--- Phase 3: Ablation ---
+rtdetr_fish_abl_no_cos,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_cos,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_abl_no_cos
+rtdetr_fish_abl_no_aug,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_aug,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_abl_no_aug
+rtdetr_fish_improved_linear,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_linear,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_linear
 
 
 
+!!!!!!!!!FIXED!!!!!!!!!!!!!!
+--- net_fish_sonar(_improved) / YOLOv26s ---
+--- base test DONE ---
+yolov26s_net_fish_sonar_improved_120e_fair,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,net_fish_sonar_120e_fair,outputs/training/net_fish_sonar_improved,yolov26s_net_fish_sonar_improved_120e_fair
+
+--- Phase 1: Optimizer + LR sweep (300e patience=50, fliplr only, no cosine, auto_augment is off) ---
+--- SGD: lr in {0.01, 0.005, 0.001} ---
+yolov26s_sonar_opt_sgd_lr01_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_sgd_lr01,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_sgd_lr01
+yolov26s_sonar_opt_sgd_lr005_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_sgd_lr005,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_sgd_lr005
+yolov26s_sonar_opt_sgd_lr001_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_sgd_lr001,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_sgd_lr001
+--- AdamW: lr in {0.001, 0.0005, 0.0001} ---
+yolov26s_sonar_opt_adamw_lr001_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_adamw_lr001,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_adamw_lr001
+yolov26s_sonar_opt_adamw_lr0005_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_adamw_lr0005,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_adamw_lr0005
+yolov26s_sonar_opt_adamw_lr0001_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_opt_adamw_lr0001,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_opt_adamw_lr0001
+--- Phase 2: Improved (update optimizer+lr0 after Phase 1) ---
+yolov26s_sonar_improved,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_improved,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_improved
+yolov26s_sonar_improved_b,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_improved_b,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_improved_b
+--- Phase 3: Ablation ---
+yolov26s_sonar_abl_no_cos,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_abl_no_cos,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_abl_no_cos
+yolov26s_sonar_abl_no_aug_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_abl_no_aug,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_abl_no_aug
 
 
 
