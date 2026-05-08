@@ -146,10 +146,12 @@ yolov26s_sonar_abl_no_aug,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fis
 rtdetr_fish_opt_sgd_lr01,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr01,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr01
 rtdetr_fish_opt_sgd_lr005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr005,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr005
 rtdetr_fish_opt_sgd_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_sgd_lr001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_sgd_lr001
---- AdamW: lr in {0.001, 0.0005, 0.0001} ---
+--- AdamW: lr in {0.001, 0.0005, 0.0001, 0.00005, 0.00001} ---
 rtdetr_fish_opt_adamw_lr001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr001
 rtdetr_fish_opt_adamw_lr0005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0005,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr0005
 rtdetr_fish_opt_adamw_lr0001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr0001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr0001
+rtdetr_fish_opt_adamw_lr00005,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr00005,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr00005
+rtdetr_fish_opt_adamw_lr00001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_opt_adamw_lr00001,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_opt_adamw_lr00001
 --- Phase 2: Improved (update lr0 after Phase 1) ---
 rtdetr_fish_improved_a,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_a,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_a
 rtdetr_fish_improved_b,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_b,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_b
