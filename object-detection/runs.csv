@@ -155,6 +155,10 @@ rtdetr_fish_opt_adamw_lr00001,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/
 --- Phase 2: Improved (update lr0 after Phase 1) ---
 rtdetr_fish_improved_a,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_a,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_a
 rtdetr_fish_improved_b,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_b,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_b
+rtdetr_fish_improved_c,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_c,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_c
+
+rtdetr_fish_improved_e,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_e,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_e
+rtdetr_fish_improved_f,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_improved_f,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_improved_f
 
 --- Phase 3: Ablation ---
 rtdetr_fish_abl_no_cos,rtdetr-l.pt,rtdetr-l.pt,../data-processing/vision/solaqua_fish/solaqua_fish.yaml,fish_abl_no_cos,outputs/training/solaqua_fish_improved_fix,rtdetr_fish_abl_no_cos
@@ -180,6 +184,7 @@ yolov26s_sonar_opt_adamw_lr0001_fix,yolo26s.pt,yolo26s.pt,../data-processing/son
 --- Phase 2: Improved (update optimizer+lr0 after Phase 1) ---
 yolov26s_sonar_improved,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_improved,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_improved
 yolov26s_sonar_improved_b,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_improved_b,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_improved_b
+
 --- Phase 3: Ablation ---
 yolov26s_sonar_abl_no_cos,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_abl_no_cos,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_abl_no_cos
 yolov26s_sonar_abl_no_aug_fix,yolo26s.pt,yolo26s.pt,../data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml,sonar_abl_no_aug,outputs/training/net_fish_sonar_improved_fix,yolov26s_sonar_abl_no_aug
