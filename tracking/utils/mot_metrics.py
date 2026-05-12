@@ -28,6 +28,7 @@ from pathlib import Path
 import ultralytics
 from ultralytics import YOLO
 from ultralytics.trackers.byte_tracker import BYTETracker
+from ultralytics.trackers.bot_sort import BOTSORT
 from ultralytics.utils import YAML, IterableSimpleNamespace
 
 from tqdm import tqdm
@@ -39,8 +40,12 @@ GT_COLS = [
 ]
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
 
-# Use the bytetrack config bundled with the local ultralytics install
-BYTETRACK_CFG = Path(ultralytics.__file__).parent / "cfg" / "trackers" / "bytetrack.yaml"
+_TRACKER_CFGS = {
+    "bytetrack": Path(ultralytics.__file__).parent / "cfg" / "trackers" / "bytetrack.yaml",
+    "botsort":   Path(ultralytics.__file__).parent / "cfg" / "trackers" / "botsort.yaml",
+}
+# Keep old name for backwards compat
+BYTETRACK_CFG = _TRACKER_CFGS["bytetrack"]
 
 
 # ── Image helpers ─────────────────────────────────────────────────────────────
@@ -72,9 +77,13 @@ def img_dir_for(seq_path: Path, modality: str) -> Path:
 
 # ── Tracker helpers (adapted from tracking-inference_CVAT.py) ─────────────────
 
-def build_tracker(frame_rate: int = 30) -> BYTETracker:
-    cfg = IterableSimpleNamespace(**YAML.load(BYTETRACK_CFG))
-    return BYTETracker(args=cfg, frame_rate=frame_rate)
+def build_tracker(frame_rate: int = 30, tracker_type: str = "bytetrack") -> BYTETracker | BOTSORT:
+    key = tracker_type.lower()
+    if key not in _TRACKER_CFGS:
+        raise ValueError(f"Unknown tracker '{tracker_type}'. Choose from: {list(_TRACKER_CFGS)}")
+    cfg = IterableSimpleNamespace(**YAML.load(_TRACKER_CFGS[key]))
+    cls = BOTSORT if key == "botsort" else BYTETracker
+    return cls(args=cfg, frame_rate=frame_rate)
 
 
 def _detections_to_input(boxes) -> np.ndarray:
@@ -144,6 +153,7 @@ def run_inference(
     iou: float  = 0.45,
     device: str = "cuda:0",
     frame_rate: int = 30,
+    tracker_type: str = "bytetrack",
     desc: str = "",
 ) -> pd.DataFrame:
     """Run detector + ByteTrack on every image in img_dir.
@@ -153,7 +163,7 @@ def run_inference(
     """
     model   = YOLO(model_path)
     imgs    = collect_images(img_dir)
-    tracker = build_tracker(frame_rate)
+    tracker = build_tracker(frame_rate, tracker_type)
     ts_fn   = frame_map(img_dir)
 
     class_names = (
@@ -416,7 +426,7 @@ def plot_metrics_bar(
     """Bar chart of selected metrics (as %) across sequences."""
     seq_names = list(results.keys())
     _col = {"MOTA": "mota", "IDF1": "idf1", "MOTP": "motp", "Recall": "recall",
-            "Precision": "precision"}
+            "Precision": "precision", "HOTA": "hota", "DetA": "deta", "AssA": "assa"}
 
     fig, axes = plt.subplots(1, len(metrics), figsize=(4.5 * len(metrics), 4))
     if len(metrics) == 1:
