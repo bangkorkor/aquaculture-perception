@@ -16,6 +16,11 @@ from __future__ import annotations
 import cv2
 import numpy as np
 import pandas as pd
+
+# motmetrics uses np.asfarray which was removed in NumPy 2.0
+if not hasattr(np, "asfarray"):
+    np.asfarray = lambda a, dtype=float: np.asarray(a, dtype=dtype)
+
 import motmetrics as mm
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -25,10 +30,7 @@ from ultralytics import YOLO
 from ultralytics.trackers.byte_tracker import BYTETracker
 from ultralytics.utils import YAML, IterableSimpleNamespace
 
-try:
-    from tqdm.notebook import tqdm
-except ImportError:
-    from tqdm import tqdm
+from tqdm import tqdm
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 GT_COLS = [
@@ -216,6 +218,21 @@ def _xywh_to_xyxy(arr) -> np.ndarray:
     return np.column_stack([a[:, 0], a[:, 1], a[:, 0] + a[:, 2], a[:, 1] + a[:, 3]])
 
 
+def _iou_matrix_xywh(gt_xywh: np.ndarray, pr_xywh: np.ndarray) -> np.ndarray:
+    """IoU matrix (n_gt × n_pr) from xywh arrays."""
+    if len(gt_xywh) == 0 or len(pr_xywh) == 0:
+        return np.zeros((len(gt_xywh), len(pr_xywh)))
+    ga, pa = _xywh_to_xyxy(gt_xywh), _xywh_to_xyxy(pr_xywh)
+    iou = np.zeros((len(ga), len(pa)))
+    for i, g in enumerate(ga):
+        xi1 = np.maximum(g[0], pa[:, 0]); yi1 = np.maximum(g[1], pa[:, 1])
+        xi2 = np.minimum(g[2], pa[:, 2]); yi2 = np.minimum(g[3], pa[:, 3])
+        inter = np.maximum(0, xi2 - xi1) * np.maximum(0, yi2 - yi1)
+        union = (g[2]-g[0])*(g[3]-g[1]) + (pa[:,2]-pa[:,0])*(pa[:,3]-pa[:,1]) - inter
+        iou[i] = np.where(union > 0, inter / union, 0)
+    return iou
+
+
 METRIC_NAMES = [
     "mota", "motp", "idf1",
     "num_switches", "num_false_positives", "num_misses",
@@ -265,6 +282,95 @@ def compute_metrics(
     return acc, summary
 
 
+def compute_hota(
+    gt_df: pd.DataFrame,
+    pred_df: pd.DataFrame,
+    alphas: np.ndarray | None = None,
+) -> dict:
+    """Compute HOTA, DetA, AssA averaged over IoU thresholds 0.05–0.95.
+
+    Returns {'hota': float, 'deta': float, 'assa': float} (all in [0, 1]).
+    """
+    from collections import Counter, defaultdict
+
+    if alphas is None:
+        alphas = np.arange(0.05, 0.96, 0.05)
+
+    all_frames = sorted(
+        set(gt_df["frame_norm"].unique()) | set(pred_df["frame_norm"].unique())
+    )
+
+    # Pre-compute IoU and sorted candidate pairs once per frame
+    frame_data = {}
+    for fn in all_frames:
+        gt_f   = gt_df[gt_df["frame_norm"] == fn]
+        pr_f   = pred_df[pred_df["frame_norm"] == fn]
+        gt_ids = gt_f["track_id"].values.astype(int)
+        pr_ids = pr_f["track_id"].values.astype(int)
+        if len(gt_ids) > 0 and len(pr_ids) > 0:
+            iou   = _iou_matrix_xywh(gt_f[["x","y","w","h"]].values,
+                                     pr_f[["x","y","w","h"]].values)
+            pairs = sorted(
+                [(iou[i, j], i, j)
+                 for i in range(len(gt_ids))
+                 for j in range(len(pr_ids))],
+                reverse=True,
+            )
+        else:
+            pairs = []
+        frame_data[fn] = (gt_ids, pr_ids, pairs)
+
+    hota_vals, deta_vals, assa_vals = [], [], []
+
+    for alpha in alphas:
+        tp_pairs: list[tuple[int, int]] = []
+        n_fp = n_fn = 0
+
+        for fn, (gt_ids, pr_ids, pairs) in frame_data.items():
+            matched_gt: set[int] = set()
+            matched_pr: set[int] = set()
+            for score, i, j in pairs:
+                if score < alpha:
+                    break  # sorted descending — no better pairs remain
+                if i in matched_gt or j in matched_pr:
+                    continue
+                matched_gt.add(i)
+                matched_pr.add(j)
+                tp_pairs.append((gt_ids[i], pr_ids[j]))
+            n_fn += len(gt_ids) - len(matched_gt)
+            n_fp += len(pr_ids) - len(matched_pr)
+
+        n_tp = len(tp_pairs)
+        deta = n_tp / (n_tp + n_fp + n_fn) if (n_tp + n_fp + n_fn) > 0 else 0.0
+
+        if n_tp == 0:
+            assa = 0.0
+        else:
+            pair_counts = Counter(tp_pairs)
+            pred_total: dict[int, int] = defaultdict(int)
+            gt_total:   dict[int, int] = defaultdict(int)
+            for (g, p), cnt in pair_counts.items():
+                pred_total[p] += cnt
+                gt_total[g]   += cnt
+
+            ass_sum = 0.0
+            for (g, p), tpa in pair_counts.items():
+                fpa = pred_total[p] - tpa
+                fna = gt_total[g]   - tpa
+                ass_sum += tpa * (tpa / (tpa + fpa + fna))
+            assa = ass_sum / n_tp
+
+        hota_vals.append(np.sqrt(deta * assa))
+        deta_vals.append(deta)
+        assa_vals.append(assa)
+
+    return {
+        "hota": float(np.mean(hota_vals)),
+        "deta": float(np.mean(deta_vals)),
+        "assa": float(np.mean(assa_vals)),
+    }
+
+
 def format_summary(summary: pd.DataFrame) -> pd.DataFrame:
     """Return a human-readable copy with renamed columns and % for rate metrics."""
     rename = {
@@ -275,9 +381,10 @@ def format_summary(summary: pd.DataFrame) -> pd.DataFrame:
         "precision": "Precision", "mostly_tracked": "MT",
         "mostly_lost": "ML", "partially_tracked": "PT",
         "num_unique_objects": "GT tracks",
+        "hota": "HOTA", "deta": "DetA", "assa": "AssA",
     }
     out = summary.rename(columns=rename).copy()
-    for col in ["MOTA", "MOTP", "IDF1", "Recall", "Precision"]:
+    for col in ["MOTA", "MOTP", "IDF1", "Recall", "Precision", "HOTA", "DetA", "AssA"]:
         if col in out.columns:
             out[col] = (out[col] * 100).round(1).astype(str) + "%"
     for col in ["MT", "ML", "PT"]:
@@ -293,8 +400,8 @@ def build_summary_table(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
         row = format_summary(s).iloc[0].to_dict()
         row["Sequence"] = seq[-8:]
         rows.append(row)
-    cols = ["Sequence", "MOTA", "IDF1", "MOTP", "Recall", "Precision",
-            "FP", "FN", "IDSW", "MT", "ML", "GT tracks"]
+    cols = ["Sequence", "HOTA", "DetA", "AssA", "MOTA", "IDF1", "MOTP",
+            "Recall", "Precision", "FP", "FN", "IDSW", "MT", "ML", "GT tracks"]
     df = pd.DataFrame(rows)
     return df[[c for c in cols if c in df.columns]]
 
@@ -447,10 +554,14 @@ def plot_id_switches(
         if switches.empty:
             ax.text(0.5, 0.5, "0 ID switches", ha="center", transform=ax.transAxes)
         else:
-            # Cumulative count over frames
+            # Cumulative count over frames (group duplicates before reindex)
             sw_frames = switches.index.get_level_values("FrameId")
-            cumsum = pd.Series(1, index=sw_frames).sort_index().cumsum()
-            cumsum = cumsum.reindex(range(1, total_frames[seq] + 1), method="ffill").fillna(0)
+            cumsum = (pd.Series(1, index=sw_frames)
+                      .groupby(level=0).sum()
+                      .sort_index()
+                      .cumsum()
+                      .reindex(range(1, total_frames[seq] + 1), method="ffill")
+                      .fillna(0))
             ax.step(cumsum.index, cumsum.values, where="post", color="#FF9800", lw=1.5)
             ax.fill_between(cumsum.index, cumsum.values, alpha=0.2, color="#FF9800", step="post")
 
