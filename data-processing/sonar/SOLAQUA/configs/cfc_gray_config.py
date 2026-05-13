@@ -2,7 +2,7 @@ cfc_gray_config = {
     # ===== data mapping. From matrix to real-values
     "fov_deg": 120.0,     # field of view. in degrees. 0 in middle (+-60)
     "range_min_m": 0.0, 
-    "range_max_m": 20.0,    # depth of data
+    "range_max_m": 20.0,    # depth of data, it is actually 50m. We don tchange it but remeember the ratio 
 
     "transpose_M": False,   # we transpose the matrix (swap H and W)
     "flipX_m": True,    # we flip the beam angle, True here is correct, dont know why
@@ -43,11 +43,11 @@ cfc_gray_config = {
 
 
     # ===== visualization polar
-    "cmap_raw": "viridis",
+    "cmap_raw": "gray",
     "cmap_enh": "gray",
     "figsize": (6, 5.6),
     "display_range_min_m": 0.2, # how deep we show 
-    "display_range_max_m": 5.0, # how deep we show
+    "display_range_max_m": 8.0, # how deep we show
 
     # ===== cone view 
     "img_w": 1200,
@@ -55,7 +55,7 @@ cfc_gray_config = {
     "bg_color": "#4b4b4b",
     "rotate_deg": 0.0,  
     "coneview_range_min_m": 0.2,
-    "coneview_range_max_m": 8.0,
+    "coneview_range_max_m": 8.0,            # with the actual depth being 50m this is scaled up to actually be 20m 
     "coneview_angle_min_deg": -45.0,
     "coneview_angle_max_deg": 45.0,
 }
