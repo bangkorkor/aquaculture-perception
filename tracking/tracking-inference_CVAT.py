@@ -29,26 +29,26 @@ from ultralytics.utils.checks import check_yaml
 # =============================================================================
 
 MODEL_PATH = (
-    "/cluster/home/henrban/aquaculture-perception/runs/detect/outputs/training/net_fish_sonar/yolov26s_net_fish_sonar_120e_fair/weights/best.pt"
+    "/workspace/aquaculture-perception/runs/detect/outputs/training/solaqua_fish_improved_fix/rtdetr_fish_improved_f/weights/best.pt"
 )
 # MODEL_PATH = (
 #     "/cluster/home/henrban/aquaculture-perception/runs/detect/outputs/training/solaqua_fish/rt_detr_solaqua_fish_120e_fair/weights/best.pt"
 # )
 
 SOURCE = (
-    "/cluster/home/henrban/aquaculture-perception/data-processing/sonar/MOT/2024-08-20_17-39-32/frames"
+    "/workspace/aquaculture-perception/data-processing/vision/MOT/2024-08-20_17-40-54/frames/2024-08-20_17-40-54"
 )
 
-OUTPUT_DIR = Path("outputs/inference_annotation_MOT11_CVAT_SONAR")
+OUTPUT_DIR = Path("outputs/inference_annotation_MOT11_CVAT")
 
 # Detector settings
 CONF_THRESHOLD = 0.25
 # RT-DETR handles duplicate suppression internally via its transformer decoder,
 # so NMS is largely redundant. We set iou very high to avoid incorrectly
-# discarding valid detections.
-IOU_THRESHOLD  = 0.45
+# discarding valid detections. (0.85)
+IOU_THRESHOLD  = 0.85
 
-DEVICE         = "cpu"   # e.g. "cuda:0" for GPU
+DEVICE         = "cuda:0"   # e.g. "cuda:0" for GPU, "cpu" for CPU
 FRAME_RATE     = 30      # used by ByteTrack's Kalman filter
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
