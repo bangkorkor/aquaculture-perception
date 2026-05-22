@@ -18,12 +18,12 @@ Filename (timestamp)		        Action performed
 2024-08-20_13-40-35		Calibration of stereo camera	
 2024-08-20_13-42-51		Calibration of stereo camera	
 
-2024-08-20_13-55-34		Manual control - shallow         **Bag imported**	
-2024-08-20_13-57-42		Manual control - shallow         **Bag imported**
-2024-08-20_14-16-05	        Manual control - deeper      **Bag imported**
+2024-08-20_13-55-34		Manual control - shallow         **Bag imported** (Detection, Both)
+2024-08-20_13-57-42		Manual control - shallow         **Bag imported** (val/test)
+2024-08-20_14-16-05	        Manual control - deeper      **Bag imported** (Detection, Sonar)
 2024-08-20_14-22-12		Manual control - deeper	
 2024-08-20_14-24-35		Manual control - deeper
-2024-08-20_14-31-29         Manual control - shallow     **Bag imported**
+2024-08-20_14-31-29         Manual control - shallow     **Bag imported** (MOT, Detection (few images compared to MOT), Both)
 
 Filename (timestamp)		                                                   Action performed
 2024-08-20_14-34-07_data to 2024-08-20_18-52-15     Net following
@@ -40,9 +40,9 @@ Q: Heading-angle offset from net [deg]
 The following sets are somewhat inconsistent in terms of net distance:
 ---------------------------------------------------------------
 Filename	                       D0	D1	Z	V	Q
-2024-08-20_14-34-07        1.5   1.5  2     0.2    0        **Bag imported**
-2024-08-20_14-36-22        1.5   1.5  2     0.2    0        **Bag imported**
-2024-08-20_14-38-37        2.0   2.0  2     0.2             **Bag imported**
+2024-08-20_14-34-07        1.5   1.5  2     0.2    0        **Bag imported** (Detection, Sonar)
+2024-08-20_14-36-22        1.5   1.5  2     0.2    0        **Bag imported** (Not used)
+2024-08-20_14-38-37        2.0   2.0  2     0.2             **Bag imported** (val/test)
 2024-08-20_14-49-47        2.0   2.0  2     0.2    0
 2024-08-20_14-54-52        2.0   2.0  2     0.2    0
 2024-08-20_14-57-38        2.0   1.1  2     0.2    0
@@ -52,39 +52,39 @@ Filename	                       D0	D1	Z	V	Q
 2024-08-20_15-12-51        1.5   1.0  5     0.1    0        **Imported not proccesed**
 2024-08-20_15-14-40        1.4   1.9  5     0.1    0
 2024-08-20_15-18-27        1.4   1.4  5     0.3    0
-2024-08-20_15-20-29        1.4   1.4  5     0.3    0        **Bag imported**
+2024-08-20_15-20-29        1.4   1.4  5     0.3    0        **Bag imported** (Detection, Vision)
 ---------------------------------------------------------------
 
 The following sets are consistent in terms of net distance
 ---------------------------------------------------------------
 Filename	                       D0	D1	Z	V	Q
-2024-08-20_16-34-34		1	1.5	2	0.2	0        **Bag imported**
+2024-08-20_16-34-34		1	1.5	2	0.2	0        **Bag imported** (Detection, Vision)
 2024-08-20_16-37-15		1	1.5	2	0.2	0
 2024-08-20_16-39-23		1	1.5	2	0.2	0
-2024-08-20_16-43-25		1	1.5	2	0.2	0       **Bag imported**
-2024-08-20_16-45-21		1	1.5	2	0.2	0       **Bag imported**
+2024-08-20_16-43-25		1	1.5	2	0.2	0       **Bag imported** (val/test)
+2024-08-20_16-45-21		1	1.5	2	0.2	0       **Bag imported** (val/test)
 2024-08-20_16-51-57		1	1.5	2	0.2	0
-2024-08-20_16-47-54		1	1.5	2	0.2	0       **Bag imported**
+2024-08-20_16-47-54		1	1.5	2	0.2	0       **Bag imported** (Detection, Vision)
 							
 2024-08-20_16-54-36		1	1.5	2	0.1	0
 2024-08-20_16-57-46		1	1.5	2	0.1	0
-2024-08-20_17-02-00		1	1.5	2	0.1	0       **Bag imported**
+2024-08-20_17-02-00		1	1.5	2	0.1	0       **Bag imported** (Detection, Vision)
 2024-08-20_17-04-52		0.5	1	2	0.1	0
 2024-08-20_17-08-14		0.5	1	2	0.1	0
 2024-08-20_17-11-14		0.5	1	2	0.1	0
 						
-2024-08-20_17-14-36		1	1.5	2	0.3	0       **Bag imported**
+2024-08-20_17-14-36		1	1.5	2	0.3	0       **Bag imported** (Detection, Both)
 2024-08-20_17-22-40		1	1.5	2	0.3	0
 2024-08-20_17-31-58		1	1.5	2	0.3	0
 2024-08-20_17-34-52		1	1.5	2	0.3	0
 2024-08-20_17-37-08		1	1.5	2	0.3	0
 							
-2024-08-20_17-39-32		1	1.5	5	0.2	0       **Bag Imported**
+2024-08-20_17-39-32		1	1.5	5	0.2	0       **Bag Imported** (MOT)
 2024-08-20_17-40-54		1	1.5	5	0.2	0
 2024-08-20_17-47-49		0.5	1	5	0.2	0
 2024-08-20_17-50-22		0.5	1	5	0.2	0
 2024-08-20_17-53-06		0.5	1	5	0.2	0
-2024-08-20_17-55-40		1	1.5	5	0.2	0       **Bag imported**
+2024-08-20_17-55-40		1	1.5	5	0.2	0       **Bag imported** (MOT)
 							
 2024-08-20_17-57-55		0.5	1	5	0.1	0
 2024-08-20_18-01-46		0.5	1	5	0.1	0
@@ -96,8 +96,8 @@ Filename	                       D0	D1	Z	V	Q
 2024-08-20_18-38-53		0.5	1	5	0.2	0
 2024-08-20_18-41-02		0.5	1	5	0.2	0
 							
-2024-08-20_18-47-40		1	1	2	0.2	10      **Bag imported**
-2024-08-20_18-53-59		1	1	2	0.2	10      **Bag imported**
+2024-08-20_18-47-40		1	1	2	0.2	10      **Bag imported** (Not used)
+2024-08-20_18-53-59		1	1	2	0.2	10      **Bag imported** (Not used)
 							
 2024-08-20_18-50-22		1	1.5	2	0.2	0
 2024-08-20_18-52-15		1	1.5	2	0.2	0
