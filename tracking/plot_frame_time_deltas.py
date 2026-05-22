@@ -18,7 +18,7 @@ import numpy as np
 # =========================
 # HARD CODE PATHS HERE
 # =========================
-IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/SOLAQUA/raw_processed/all_images/2024-08-20_14-31-29"
+IMAGE_DIR = "/cluster/home/henrban/aquaculture-perception/data-processing/vision/MOT/2024-08-20_14-31-29/frames/2024-08-20_14-31-29"
 OUTPUT_PLOT = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/fps/frame_time_deltas.png"
 OUTPUT_HIST = "/cluster/home/henrban/aquaculture-perception/tracking/outputs/varying_fps_plots/frame_time_deltas_hist.png"
 
@@ -107,9 +107,9 @@ def main():
     # histogram
     plt.figure(figsize=(8, 5))
     plt.hist(delta_ms, bins=50)
-    plt.xlabel("Delta between frames [ms]")
+    plt.xlabel("Frame interval [ms]")
     plt.ylabel("Count")
-    plt.title("Histogram of frame-to-frame time differences")
+    plt.title("")
     plt.grid(True)
     plt.tight_layout()
     Path(OUTPUT_HIST).parent.mkdir(parents=True, exist_ok=True)
