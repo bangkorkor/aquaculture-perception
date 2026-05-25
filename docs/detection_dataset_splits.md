@@ -86,6 +86,8 @@ Sequences that are in train for detection and also in MOT:
 2024-08-20_17-02-00, for VISION, val in train => this shuold be REMOVED from MOT
 
 2024-08-20_17-14-36, for VISION and SONAR => many overlapping, this is REMOVED from MOT
-
+2024-08-20_17-34-52, NEITHER => ok
 2024-08-20_17-39-32, NEITHER => OK
+2024-08-20_17-40-54, NEITHER => ok
 2024-08-20_17-55-40, NEITHER in train => OK
+
