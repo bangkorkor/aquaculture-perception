@@ -513,7 +513,7 @@ This repository builds on the following open-source projects. Please also cite t
 
 ---
 
-## 14. License
+## 13. License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
