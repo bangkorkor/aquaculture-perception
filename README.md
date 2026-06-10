@@ -1,12 +1,18 @@
-# Perception for Aquaculture Net Pens: Object Detection and Multi-Object Tracking
+# Underwater Detection and Tracking in Aquaculture Net Pens
 
 **Master's Thesis — Henrik Bang-Olsen**
 
-This repository contains all practical work associated with a master's thesis on **object detection and multi-object tracking (MOT) in aquaculture net pen environments**, using both vision (monocular camera) and sonar (Ping 360 / multibeam) sensor data collected from a remotely operated vehicle (ROV).
+This repository contains all practical work associated with a master's thesis on **object detection and multi-object tracking (MOT) in aquaculture net pen environments**, using both vision (monocular camera) and sonar (sonoptix ECHO) sensor data collected from a remotely operated vehicle (ROV).
 
-A central contribution is the **SolAqua annotated dataset** — a multi-modal dataset of fish and net observations recorded inside a full-scale salmon pen — which is hosted separately at:
+A central contribution is the **SOLAQUA_annotated dataset** — a multi-modal dataset of fish and net observations recorded inside a full-scale salmon pen — which is hosted separately at:
 
 > **[https://github.com/bangkorkor/solaqua-annotated](https://github.com/bangkorkor/solaqua-annotated)**
+
+---
+
+| Vision — Ground Truth Annotations | Sonar — Ground Truth Annotations |
+|:----------------------------------:|:---------------------------------:|
+| ![Vision GT demo](docs/assets/vision_gt_demo.gif) | ![Sonar GT demo](docs/assets/sonar_gt_demo.gif) |
 
 ---
 
@@ -18,13 +24,12 @@ A central contribution is the **SolAqua annotated dataset** — a multi-modal da
 4. [Object Detection](#4-object-detection)
 5. [Multi-Object Tracking](#5-multi-object-tracking)
 6. [Segmentation](#6-segmentation)
-7. [Thesis Figures and Analysis Utilities](#7-thesis-figures-and-analysis-utilities)
-8. [Environment Setup](#8-environment-setup)
-9. [Getting Started](#9-getting-started)
-10. [Suggested Experiment Workflow](#10-suggested-experiment-workflow)
-11. [Outputs and Results](#11-outputs-and-results)
-12. [Citation and Acknowledgements](#12-citation-and-acknowledgements)
-13. [License](#14-license)
+7. [Environment Setup](#7-environment-setup)
+8. [Getting Started](#8-getting-started)
+9. [Suggested Experiment Workflow](#9-suggested-experiment-workflow)
+10. [Outputs and Results](#10-outputs-and-results)
+11. [Citation and Acknowledgements](#11-citation-and-acknowledgements)
+12. [License](#12-license)
 
 ---
 
@@ -32,13 +37,7 @@ A central contribution is the **SolAqua annotated dataset** — a multi-modal da
 
 Aquaculture net pens present challenging perception conditions: variable lighting, backscatter, biofouling, turbid water, and dense fish schools. This thesis investigates whether modern object detection and tracking pipelines — trained on purpose-built datasets collected at a commercial salmon farm — can reliably detect and track fish and net structures from ROV-mounted cameras and sonars.
 
-The raw data were recorded during sea trials at a full-scale fish farm on **20 August 2024** using a ROV equipped with:
-- Monocular and stereo cameras
-- Ping 360 scanning sonar and multibeam sonar
-- IMU, DVL, USBL, depth/pressure/temperature sensors
-
-Environmental conditions: ~14 °C, wind 6 m/s, current 0.04–0.2 m/s, rain.
-Fish cage: 50 m diameter, ~188 000 fish, ~3 000 g average weight, 27.5 mm net mesh with partial biofouling.
+The raw data were recorded during sea trials at a full-scale fish farm and is available here: [https://data.sintef.no/feature/fe-a8f86232-5107-495e-a3dd-a86460eebef6](https://data.sintef.no/feature/fe-a8f86232-5107-495e-a3dd-a86460eebef6)
 
 ---
 
@@ -84,7 +83,7 @@ The most important top-level folders are:
 | UATD | Sonar | 10 classes | — | — | Public benchmark |
 | RUOD | Vision | 10 classes | — | — | Public benchmark |
 
-The annotated SolAqua datasets (sonar and vision) are hosted at:
+The SOLAQUA-annotated dataset are hosted at:
 **[https://github.com/bangkorkor/solaqua-annotated](https://github.com/bangkorkor/solaqua-annotated)**
 
 ### 3.2 Raw Data (`data-processing/solaqua_bags/`)
@@ -108,7 +107,7 @@ Raw recordings are stored as **ROS bag files** (`.bag`) captured during net-foll
 
 ### 3.4 Sonar Dataset — `net_fish_sonar` / `net_fish_sonar_improved`
 
-- **Modality:** Ping 360 / multibeam sonar (rasterised to 2D images)
+- **Modality:** FLS sonar (rasterised to 2D images)
 - **Classes:** `fish`, `net`
 - **Processing notebook:** `data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.ipynb`
 - **YAML config:** `data-processing/sonar/net_fish_sonar_improved/net_fish_sonar_improved.yaml`
@@ -184,18 +183,13 @@ Run IDs are defined in `object-detection/runs.csv`, which maps each ID to a mode
 | YOLOv11 | n, s, m | Ultralytics v11 |
 | YOLOv26 | n, s, m | Ultralytics v2.6 |
 | RT-DETR-L | — | Transformer detector |
-| UW-YOLOv8 | v1, v2, v3 | Underwater-adapted YOLO (custom architecture) |
-| UODN | v1, v2, v3 | Custom underwater object detection network |
-| AGW-YOLOv8 | s, m | Attention-guided width variant |
-| MAS-YOLOv11 | n, s | Multi-scale attention variant |
-| AquaYOLO | n, s, m | Custom sonar-adapted YOLO |
 
 Custom model architectures are defined as YAML files in `object-detection/configs/models/`. New blocks are implemented inside the `ultralytics/` fork — see `ultralytics/ultralytics/nn/modules/block.py` and `ultralytics/ultralytics/nn/modules/__init__.py`.
 
-**Also in this folder:**
+**Other runs:**
 
-- `YOLOv11-SDC-main/` — Fork of the [YOLOv11-SDC](https://github.com/TODO) sonar detector. Run under `.venv`.
-- `yolov8_fasternet-main/` — Fork of the YOLOv8/FasterNet implementation. Run under `.venv-mmdet`.
+- `YOLOv11-SDC-main/` — Fork of the yolov11-sdc implementation. Run under `.venv`.
+- `yolov8_fasternet-main/` — Fork of the uw-yolov8 implementation. Run under `.venv-mmdet`.
 
 ---
 
@@ -243,25 +237,11 @@ Pre-trained weights are stored in `segmentation/models/`. Inference scripts are 
 
 ---
 
-## 7. Thesis Figures and Analysis Utilities
-
-`thesis_figures/` contains notebooks and scripts used to produce the figures and tables in the thesis report:
-
-| File | Content |
-|------|---------|
-| `thesis_figures/thesis_dataset_plots.ipynb` | Dataset statistics, distribution plots, and other figures used in the report |
-
-Data-processing utilities shared across notebooks are in `data-processing/utils/`:
-- `yolo_dataset_summary.py` — compute per-class statistics for YOLO-format datasets
-- `yolo_viz.py` — visualise YOLO bounding box annotations on images
-
----
-
-## 8. Environment Setup
+## 7. Environment Setup
 
 Two separate Python 3.9 virtual environments are used. Keep them separate — the dependency sets are incompatible.
 
-### 8.1 `.venv` — Ultralytics / Object Detection / Tracking
+### 7.1 `.venv` — Ultralytics / Object Detection / Tracking
 
 Used for: `object-detection/`, `tracking/`, `segmentation/`, `YOLOv11-SDC-main/`, and most notebooks.
 
@@ -289,7 +269,7 @@ Or use the absolute path:
 export PYTHONPATH=/path/to/aquaculture-perception:$PYTHONPATH
 ```
 
-### 8.2 `.venv-mmdet` — MMDetection / YOLOv8-FasterNet
+### 7.2 `.venv-mmdet` — MMDetection / YOLOv8-FasterNet
 
 Used for: `mmdetection/` and `yolov8_fasternet-main/`.
 
@@ -325,20 +305,20 @@ cd ..
 
 ---
 
-## 9. Getting Started
+## 8. Getting Started
 
-### 9.1 Clone the Repository
+### 8.1 Clone the Repository
 
 ```bash
 git clone https://github.com/bangkorkor/aquaculture-perception.git
 cd aquaculture-perception
 ```
 
-### 9.2 Set Up Environments
+### 8.2 Set Up Environments
 
-Follow [Section 8](#8-environment-setup) to create `.venv` and/or `.venv-mmdet`.
+Follow [Section 7](#7-environment-setup) to create `.venv` and/or `.venv-mmdet`.
 
-### 9.3 Prepare Datasets
+### 8.3 Prepare Datasets
 
 Dataset YAML files reference absolute paths under `/workspace/aquaculture-perception/data-processing/...`. You will need to either:
 - Place the processed dataset files at the paths expected in the YAML configs, **or**
@@ -354,7 +334,7 @@ data-processing/vision/solaqua_fish/processed/split_yolo/images/{train,val,test}
 
 Public benchmarks (UATD, RUOD) need to be downloaded separately and processed using the notebooks in `data-processing/sonar/UATD/` and `data-processing/vision/RUOD/`.
 
-### 9.4 Run a Basic Ultralytics Object Detection Experiment
+### 8.4 Run a Basic Ultralytics Object Detection Experiment
 
 ```bash
 source .venv/bin/activate
@@ -371,7 +351,7 @@ python train.py --id yolov8s_RUOD_120e_fair --dry
 
 Outputs (weights, logs, metrics) are saved to the `project`/`name` directory defined in `runs.csv`, typically under `object-detection/outputs/training/`.
 
-### 9.5 Run an MMDetection Experiment
+### 8.5 Run an MMDetection Experiment
 
 ```bash
 source .venv-mmdet/bin/activate
@@ -399,7 +379,7 @@ python demo/video_demo.py \
   --out result.mp4
 ```
 
-### 9.6 Run a Tracking Experiment
+### 8.6 Run a Tracking Experiment
 
 ```bash
 source .venv/bin/activate
@@ -417,7 +397,7 @@ Edit the `MODEL_PATH` and `SOURCE` variables at the top of the inference scripts
 
 ---
 
-## 10. Suggested Experiment Workflow
+## 9. Suggested Experiment Workflow
 
 ```
 1. Raw data (ROS bags)
@@ -459,7 +439,7 @@ Edit the `MODEL_PATH` and `SOURCE` variables at the top of the inference scripts
 
 ---
 
-## 11. Outputs and Results
+## 10. Outputs and Results
 
 ### Ultralytics Runs
 
@@ -498,7 +478,7 @@ tracking/outputs/
 
 ---
 
-## 12. Citation and Acknowledgements
+## 11. Citation and Acknowledgements
 
 This repository builds on the following open-source projects. Please also cite them where appropriate:
 
@@ -513,7 +493,7 @@ This repository builds on the following open-source projects. Please also cite t
 
 ---
 
-## 13. License
+## 12. License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
